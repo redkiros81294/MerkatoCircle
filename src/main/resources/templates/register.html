@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Create account')}"></head>
+<body>
+<div class="center">
+  <div class="card authcard">
+    <h1>Join Merkato Circle</h1>
+    <p>Create your account to start saving with your Iqub group.</p>
+
+    <div class="banner banner--error" th:if="${errorMessage}">
+      <div><h3>Couldn't create account</h3><p th:text="${errorMessage}"></p></div>
+    </div>
+
+    <form th:action="@{/register}" method="post">
+      <label for="fullName">Full name</label>
+      <input id="fullName" name="fullName" type="text" required autofocus>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required>
+      <label for="phone">Phone</label>
+      <input id="phone" name="phone" type="tel" placeholder="09xxxxxxxx" pattern="0[79][0-9]{8}" required>
+      <p class="help">Format: 07xxxxxxxx or 09xxxxxxxx</p>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" minlength="8" required>
+      <button class="btn btn-primary btn-block" type="submit">Create account</button>
+    </form>
+    <p class="switch-line">Already have an account? <a th:href="@{/login}">Sign in</a></p>
+  </div>
+</div>
+</body>
+</html>

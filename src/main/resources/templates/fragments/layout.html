@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+  <meta charset="UTF-8">
+  <title th:text="${title} + ' · Merkato Circle'">Merkato Circle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&family=Inter:wght@400;600;700&family=IBM+Plex+Mono:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+  <div th:fragment="topbar(active)" id="topbar">
+    <a class="brand" th:href="@{/dashboard}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle></svg>
+      Merkato Circle
+    </a>
+    <nav class="mainnav">
+      <a th:href="@{/dashboard}" th:classappend="${active == 'dashboard' ? 'active' : ''}">My Groups</a>
+      <a th:href="@{/notifications}" th:classappend="${active == 'notifications' ? 'active' : ''}">Notifications</a>
+      <a th:href="@{/account}" th:classappend="${active == 'account' ? 'active' : ''}">Account</a>
+    </nav>
+    <div class="userchip">
+      <form th:action="@{/logout}" method="post" style="margin:0">
+        <button class="logout" type="submit">Log out</button>
+      </form>
+    </div>
+  </div>
+
+  <div th:fragment="banners">
+    <div class="banner banner--success" th:if="${successMessage}">
+      <div><h3>Success</h3><p th:text="${successMessage}"></p></div>
+    </div>
+    <div class="banner banner--error" th:if="${errorMessage}">
+      <div><h3>Something went wrong</h3><p th:text="${errorMessage}"></p></div>
+    </div>
+  </div>
+</body>
+</html>

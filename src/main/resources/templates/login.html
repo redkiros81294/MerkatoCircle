@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sign in')}"></head>
+<body>
+<div class="center">
+  <div class="card authcard">
+    <h1>Merkato Circle</h1>
+    <p>Sign in to your Iqub account</p>
+
+    <div class="banner banner--success" th:if="${param.registered != null}">
+      <div><h3>Account created</h3><p>Sign in below to get started.</p></div>
+    </div>
+    <div class="banner banner--success" th:if="${param.loggedOut != null}">
+      <div><p>You've been logged out.</p></div>
+    </div>
+    <div class="banner banner--error" th:if="${param.error != null}">
+      <div><h3>Sign-in failed</h3><p>Check your email and password and try again.</p></div>
+    </div>
+
+    <form th:action="@{/login}" method="post">
+      <label for="username">Email</label>
+      <input id="username" name="username" type="email" required autofocus>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required>
+      <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+    </form>
+    <p class="switch-line">New here? <a th:href="@{/register}">Create an account</a></p>
+  </div>
+</div>
+</body>
+</html>
