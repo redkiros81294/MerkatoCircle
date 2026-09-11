@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Payment')}"></head>
+<body>
+<div class="confirm-wrap">
+  <div th:if="${contribution.status.name() == 'AWAITING_PAYMENT'}">
+    <div class="spin"></div>
+    <h2>Confirming your payment…</h2>
+    <p>This can take a few seconds.</p>
+  </div>
+  <div class="banner banner--success" th:if="${contribution.isSettled()}">
+    <div><h3>Payment received</h3>
+      <p th:text="'Round ' + ${contribution.round.roundNumber} + ' is now ' + ${contribution.status} + '.'"></p>
+    </div>
+  </div>
+  <div class="banner banner--error" th:if="${contribution.status.name() == 'PAYMENT_FAILED'}">
+    <div><h3>Payment didn't go through</h3><p>Nothing was charged. You can try again from the group page.</p></div>
+  </div>
+  <a class="btn btn-primary" th:href="@{/login}">Continue</a>
+</div>
+</body>
+</html>

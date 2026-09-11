@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Checkout')}"></head>
+<body>
+<div class="checkout-shell">
+  <div class="checkout-card">
+    <div class="checkout-head">Merkato Circle Checkout</div>
+    <div class="checkout-body">
+      <span class="test-tag">Test mode</span>
+      <div class="checkout-amount">
+        <div class="to">Paying Merkato Circle</div>
+        <div class="num" th:text="'Tx ' + ${txRef}"></div>
+      </div>
+      <form th:action="@{/test/fake-checkout/simulate}" method="post">
+        <input type="hidden" name="tx_ref" th:value="${txRef}">
+        <input type="hidden" name="outcome" value="success">
+        <button class="btn btn-primary btn-block" type="submit">Simulate success</button>
+      </form>
+      <br>
+      <form th:action="@{/test/fake-checkout/simulate}" method="post">
+        <input type="hidden" name="tx_ref" th:value="${txRef}">
+        <input type="hidden" name="outcome" value="failed">
+        <button class="btn btn-ghost btn-block" type="submit">Simulate failure</button>
+      </form>
+      <p class="lockline">🔒 No real charge — this is a stand-in for Chapa's checkout</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
