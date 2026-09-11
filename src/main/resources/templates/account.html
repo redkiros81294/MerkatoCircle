@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Account')}"></head>
+<body class="authed">
+<div th:replace="~{fragments/layout :: topbar('account')}"></div>
+<main>
+  <div class="stack">
+    <div th:replace="~{fragments/layout :: banners}"></div>
+    <h1>Account</h1>
+
+    <div class="card">
+      <h3>Profile</h3>
+      <form th:action="@{/account}" method="post">
+        <label for="fullName">Full name</label>
+        <input id="fullName" name="fullName" type="text" th:value="${member.fullName}" required>
+        <label for="phone">Phone</label>
+        <input id="phone" name="phone" type="tel" th:value="${member.phone}" required>
+        <p class="help" th:text="'Email: ' + ${member.email} + ' (cannot be changed)'"></p>
+        <button class="btn btn-primary" type="submit">Save profile</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>Change password</h3>
+      <form th:action="@{/account/password}" method="post">
+        <label for="newPassword">New password</label>
+        <input id="newPassword" name="newPassword" type="password" minlength="8" required>
+        <button class="btn btn-ghost" type="submit">Update password</button>
+      </form>
+    </div>
+
+    <div class="card card--tight">
+      <h3>Contribution history</h3>
+      <table>
+        <tr><th>Round</th><th>Status</th><th>Amount due</th><th>Penalty</th></tr>
+        <tr th:each="c : ${contributions}">
+          <td th:text="'Round ' + ${c.round.roundNumber} + ' · ' + ${c.round.iqub.name}"></td>
+          <td><span class="badge" th:classappend="${c.isSettled() ? 'badge--paid' : 'badge--pending'}" th:text="${c.status}"></span></td>
+          <td class="amount" th:text="${c.amountDue}"></td>
+          <td class="amount" th:text="${c.penaltyApplied}"></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</main>
+</body>
+</html>

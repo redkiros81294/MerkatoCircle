@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Notifications')}"></head>
+<body class="authed">
+<div th:replace="~{fragments/layout :: topbar('notifications')}"></div>
+<main>
+  <div class="stack">
+    <div class="split">
+      <h1>Notifications</h1>
+      <form th:action="@{/notifications/read-all}" method="post">
+        <button class="btn btn-ghost btn-sm" type="submit">Mark all read</button>
+      </form>
+    </div>
+    <div class="card card--tight" th:if="${notifications.isEmpty()}">
+      <p>Nothing yet — you'll see round results and account updates here.</p>
+    </div>
+    <div class="stack">
+      <div class="card" th:each="n : ${notifications}">
+        <p th:text="${n.message}"></p>
+        <p class="help" th:text="${n.createdDate}"></p>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>
