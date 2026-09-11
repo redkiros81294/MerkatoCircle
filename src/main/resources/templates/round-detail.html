@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${iqub.name} + ' · Round ' + ${round.roundNumber})}"></head>
+<body class="authed">
+<div th:replace="~{fragments/layout :: topbar('dashboard')}"></div>
+<main>
+  <div class="stack">
+    <div th:replace="~{fragments/layout :: banners}"></div>
+
+    <div class="split">
+      <h1 th:text="'Round ' + ${round.roundNumber}"></h1>
+      <span class="badge"
+            th:classappend="${round.status.name() == 'OPEN' ? 'badge--open' : (round.status.name() == 'OVERDUE' ? 'badge--overdue' : 'badge--closed')}"
+            th:text="${round.status}"></span>
+    </div>
+    <p th:text="'Deadline: ' + ${round.deadline}"></p>
+
+    <div class="card banner--win" th:if="${round.status.name() == 'CLOSED'}">
+      <h3>Result</h3>
+      <p th:text="${round.winner.fullName} + ' won ' + ${round.payoutAmount} + ' ETB on ' + ${round.payoutDate}"></p>
+    </div>
+
+    <div class="card card--tight">
+      <h3>Contributions</h3>
+      <table>
+        <tr><th>Member</th><th>Status</th><th>Amount due</th><th>Penalty</th></tr>
+        <tr th:each="c : ${contributions}">
+          <td th:text="${c.member.fullName}"></td>
+          <td><span class="badge" th:classappend="${c.isSettled() ? 'badge--paid' : 'badge--pending'}" th:text="${c.status}"></span></td>
+          <td class="amount" th:text="${c.amountDue}"></td>
+          <td class="amount" th:text="${c.penaltyApplied}"></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card" th:if="${isAuction and round.status.name() != 'CLOSED'}">
+      <h3>Auction bidding</h3>
+      <p>Offer a discount off your payout for a better chance at winning this round (0–30%).</p>
+      <div class="banner banner--info" th:if="${!isEligible}"><div><p>You need to pay this round's contribution before you can bid.</p></div></div>
+      <form th:if="${isEligible}" th:action="@{/iqubs/{iqubId}/rounds/{roundId}/bid(iqubId=${iqub.id},roundId=${round.id})}" method="post">
+        <label for="discountPercent">Discount percent</label>
+        <input id="discountPercent" name="discountPercent" type="number" min="0" max="30" step="0.5"
+               th:value="${myBid != null ? myBid.discountPercent : ''}" required>
+        <button class="btn btn-primary" type="submit" th:text="${myBid != null ? 'Update bid' : 'Submit bid'}"></button>
+      </form>
+      <hr class="div">
+      <table>
+        <tr><th>Member</th><th>Discount</th><th>Submitted</th></tr>
+        <tr th:each="b : ${bids}">
+          <td th:text="${b.member.fullName}"></td>
+          <td th:text="${b.discountPercent} + '%'"></td>
+          <td th:text="${b.submittedDate}"></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card" th:if="${isOrganizer and round.status.name() != 'CLOSED'}">
+      <h3>Organizer actions</h3>
+      <p th:text="${eligibleMembers.size()} + ' member(s) currently eligible to win.'"></p>
+      <form th:action="@{/iqubs/{iqubId}/rounds/{roundId}/draw(iqubId=${iqub.id},roundId=${round.id})}" method="post"
+            onsubmit="return confirm('Run the draw for this round now? This closes it.');">
+        <button class="btn btn-primary" type="submit" th:disabled="${eligibleMembers.isEmpty()}">Run the draw</button>
+      </form>
+    </div>
+
+    <a class="btn btn-ghost" th:href="@{/iqubs/{id}/rounds(id=${iqub.id})}">Back to round history</a>
+  </div>
+</main>
+</body>
+</html>

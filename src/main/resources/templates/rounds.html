@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${iqub.name} + ' · Rounds')}"></head>
+<body class="authed">
+<div th:replace="~{fragments/layout :: topbar('dashboard')}"></div>
+<main>
+  <div class="stack">
+    <h1 th:text="${iqub.name} + ' — Round history'"></h1>
+    <div class="card card--tight">
+      <table>
+        <tr><th>Round</th><th>Deadline</th><th>Status</th><th>Winner</th><th>Payout</th><th></th></tr>
+        <tr th:each="r : ${rounds}">
+          <td th:text="${r.roundNumber}"></td>
+          <td th:text="${r.deadline}"></td>
+          <td><span class="badge"
+              th:classappend="${r.status.name() == 'OPEN' ? 'badge--open' : (r.status.name() == 'OVERDUE' ? 'badge--overdue' : 'badge--closed')}"
+              th:text="${r.status}"></span></td>
+          <td th:text="${r.winner != null ? r.winner.fullName : '—'}"></td>
+          <td class="amount" th:text="${r.payoutAmount != null ? r.payoutAmount : '—'}"></td>
+          <td><a class="btn btn-ghost btn-sm" th:href="@{/iqubs/{iqubId}/rounds/{roundId}(iqubId=${iqub.id},roundId=${r.id})}">View</a></td>
+        </tr>
+      </table>
+    </div>
+    <a class="btn btn-ghost" th:href="@{/iqubs/{id}(id=${iqub.id})}">Back to group</a>
+  </div>
+</main>
+</body>
+</html>
