@@ -30,10 +30,21 @@ public class GlobalExceptionHandler {
         return "redirect:" + (referer != null && !referer.isBlank() ? referer : "/dashboard");
     }
 
-    @ExceptionHandler(PaymentInitiationException.class)
+        @ExceptionHandler(PaymentInitiationException.class)
     public String handlePaymentInitiation(PaymentInitiationException ex, RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("errorMessage",
                 "We couldn't reach the payment provider just now. Nothing was charged — please try again.");
         return "redirect:/contribute";
+    }
+
+    /**
+     * Service-layer lookups (RoundService.getById, MembershipService.getById, and similar)
+     * throw these for an id that doesn't exist — a stale link, a typo'd URL, or a race with
+     * a delete. Redirect somewhere useful instead of letting a raw 500/stack trace through.
+     */
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+    public String handleLookupFailure(RuntimeException ex, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", "That page couldn't be found or is no longer available.");
+        return "redirect:/dashboard";
     }
 }
