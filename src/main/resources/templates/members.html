@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${iqub.name} + ' · Members')}"></head>
+<body class="authed">
+<div th:replace="~{fragments/layout :: topbar('dashboard')}"></div>
+<main>
+  <div class="stack">
+    <div th:replace="~{fragments/layout :: banners}"></div>
+    <h1 th:text="${iqub.name} + ' — Roster'"></h1>
+    <div class="card card--tight">
+      <table>
+        <tr><th>Member</th><th>Status</th><th>Joined</th><th></th></tr>
+        <tr th:each="m : ${roster}">
+          <td th:text="${m.member.fullName}"></td>
+          <td><span class="badge"
+              th:classappend="${m.status.name() == 'ACTIVE' ? 'badge--active' : (m.status.name() == 'WAITLISTED' ? 'badge--pending' : 'badge--defaulted')}"
+              th:text="${m.status}"></span></td>
+          <td th:text="${m.joinedDate}"></td>
+          <td>
+            <form th:if="${isOrganizer}"
+                  th:action="@{/iqubs/{iqubId}/members/{membershipId}/remove(iqubId=${iqub.id},membershipId=${m.id})}" method="post"
+                  onsubmit="return confirm('Remove this member from the group?');">
+              <button class="btn btn-ghost btn-sm" type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <a class="btn btn-ghost" th:href="@{/iqubs/{id}(id=${iqub.id})}">Back to group</a>
+  </div>
+</main>
+</body>
+</html>

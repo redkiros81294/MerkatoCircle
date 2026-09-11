@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${iqub.name})}"></head>
+<body class="authed">
+<div th:replace="~{fragments/layout :: topbar('dashboard')}"></div>
+<main>
+  <div class="stack">
+    <div th:replace="~{fragments/layout :: banners}"></div>
+
+    <div class="split">
+      <h1 th:text="${iqub.name}"></h1>
+      <nav>
+        <a class="btn btn-ghost btn-sm" th:href="@{/iqubs/{id}/rounds(id=${iqub.id})}">Round history</a>
+        <a class="btn btn-ghost btn-sm" th:href="@{/iqubs/{id}/members(id=${iqub.id})}">Members</a>
+      </nav>
+    </div>
+
+    <div class="card">
+      <div class="split">
+        <div>
+          <h2 th:text="'Round ' + ${round.roundNumber}"></h2>
+          <p th:text="'Deadline: ' + ${round.deadline}"></p>
+        </div>
+        <span class="badge"
+              th:classappend="${round.status.name() == 'OPEN' ? 'badge--open' : (round.status.name() == 'OVERDUE' ? 'badge--overdue' : 'badge--closed')}"
+              th:text="${round.status}"></span>
+      </div>
+
+      <hr class="div">
+
+      <div th:if="${myContribution != null}">
+        <p>
+          Your contribution: <span class="amount" th:text="${myContribution.amountDue} + ' ETB'"></span>
+          — <span th:text="${myContribution.status}"></span>
+        </p>
+        <form th:if="${!myContribution.isSettled() and round.status.name() != 'CLOSED'}"
+              th:action="@{/iqubs/{iqubId}/rounds/{roundId}/pay(iqubId=${iqub.id},roundId=${round.id})}" method="post">
+          <button class="btn btn-primary" type="submit">Pay now</button>
+        </form>
+      </div>
+
+      <p style="margin-top:14px">
+        <a class="btn btn-ghost btn-sm" th:href="@{/iqubs/{iqubId}/rounds/{roundId}(iqubId=${iqub.id},roundId=${round.id})}">
+          View full round detail<span th:if="${isAuction}"> &amp; bidding</span>
+        </a>
+      </p>
+
+      <form th:if="${isOrganizer and round.status.name() != 'CLOSED'}"
+            th:action="@{/iqubs/{iqubId}/rounds/{roundId}/draw(iqubId=${iqub.id},roundId=${round.id})}" method="post"
+            onsubmit="return confirm('Run the draw for this round now? This closes it.');">
+        <button class="btn btn-ghost" type="submit">Run the draw</button>
+      </form>
+    </div>
+
+    <div class="card card--tight">
+      <h3>This round's contributions</h3>
+      <table>
+        <tr><th>Member</th><th>Status</th><th>Amount due</th></tr>
+        <tr th:each="c : ${contributions}">
+          <td th:text="${c.member.fullName}"></td>
+          <td><span class="badge" th:classappend="${c.isSettled() ? 'badge--paid' : 'badge--pending'}" th:text="${c.status}"></span></td>
+          <td class="amount" th:text="${c.amountDue}"></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</main>
+</body>
+</html>

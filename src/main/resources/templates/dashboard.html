@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Groups')}"></head>
+<body class="authed">
+<div th:replace="~{fragments/layout :: topbar('dashboard')}"></div>
+<main>
+  <div class="stack">
+    <div th:replace="~{fragments/layout :: banners}"></div>
+
+    <div>
+      <h1>My Groups</h1>
+      <p th:text="'Welcome back, ' + ${member.firstName()} + '.'"></p>
+    </div>
+
+    <div class="stack" th:if="${!memberships.isEmpty()}">
+      <a class="card" style="text-decoration:none;color:inherit;display:block"
+         th:each="m : ${memberships}" th:href="@{/iqubs/{id}(id=${m.iqub.id})}">
+        <div class="split">
+          <div>
+            <h3 th:text="${m.iqub.name}"></h3>
+            <p th:text="${m.iqub.contributionAmount} + ' ETB every ' + ${m.iqub.roundIntervalDays} + ' days · ' + ${m.iqub.maxMembers} + ' members'"></p>
+          </div>
+          <span class="badge"
+                th:classappend="${m.status.name() == 'ACTIVE' ? 'badge--active' : (m.status.name() == 'WAITLISTED' ? 'badge--pending' : 'badge--defaulted')}"
+                th:text="${m.status}"></span>
+        </div>
+      </a>
+    </div>
+
+    <div class="card" th:if="${memberships.isEmpty()}">
+      <h3>You haven't joined a group yet</h3>
+      <p>Join one of the groups below to get started.</p>
+    </div>
+
+    <div th:if="${!availableToJoin.isEmpty()}">
+      <h2>Available to join</h2>
+      <div class="stack">
+        <div class="card card--tight" th:each="iqub : ${availableToJoin}">
+          <div class="split">
+            <div>
+              <h3 th:text="${iqub.name}"></h3>
+              <p th:text="${iqub.contributionAmount} + ' ETB every ' + ${iqub.roundIntervalDays} + ' days'"></p>
+            </div>
+            <form th:action="@{/iqubs/{id}/join(id=${iqub.id})}" method="post" style="display:flex;align-items:center;justify-content:flex-end;margin:0">
+              <button class="btn btn-primary" type="submit">Join</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>
