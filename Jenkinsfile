@@ -29,7 +29,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn clean compile -q'
+                sh 'mkdir -p data && mvn clean compile -q'
             }
         }
 

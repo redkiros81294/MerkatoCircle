@@ -21,6 +21,9 @@ jobs:
           java-version: 21
           cache: maven
 
+      - name: Create data directory
+        run: mkdir -p data
+
       - name: Run all tests
         run: mvn clean test
 
