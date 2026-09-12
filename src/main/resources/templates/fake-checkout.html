@@ -12,12 +12,14 @@
         <div class="num" th:text="'Tx ' + ${txRef}"></div>
       </div>
       <form th:action="@{/test/fake-checkout/simulate}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
         <input type="hidden" name="tx_ref" th:value="${txRef}">
         <input type="hidden" name="outcome" value="success">
         <button class="btn btn-primary btn-block" type="submit">Simulate success</button>
       </form>
       <br>
       <form th:action="@{/test/fake-checkout/simulate}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
         <input type="hidden" name="tx_ref" th:value="${txRef}">
         <input type="hidden" name="outcome" value="failed">
         <button class="btn btn-ghost btn-block" type="submit">Simulate failure</button>

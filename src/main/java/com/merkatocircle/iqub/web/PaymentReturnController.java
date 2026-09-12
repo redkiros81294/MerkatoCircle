@@ -22,13 +22,19 @@ public class PaymentReturnController {
     }
 
     @GetMapping("/payments/return")
-    public String returned(@RequestParam("contribution_id") Long contributionId, Model model) {
-        Contribution contribution = contributionService.findById(contributionId);
-
-        if (contribution.getTxRef() != null) {
-            contribution = contributionService.confirmPayment(contribution.getTxRef());
+    public String returned(@RequestParam(value = "contribution_id", required = false) Long contributionId,
+                           @RequestParam(value = "tx_ref", required = false) String txRef, Model model) {
+        Contribution contribution = null;
+        if (txRef != null) {
+            contribution = contributionService.findByTxRef(txRef)
+                    .orElseThrow(() -> new IllegalArgumentException("Unknown tx_ref: " + txRef));
+            contribution = contributionService.confirmPayment(txRef);
+        } else if (contributionId != null) {
+            contribution = contributionService.findById(contributionId);
+            if (contribution.getTxRef() != null) {
+                contribution = contributionService.confirmPayment(contribution.getTxRef());
+            }
         }
-
         model.addAttribute("contribution", contribution);
         return "payment-return";
     }

@@ -17,7 +17,9 @@ import com.merkatocircle.iqub.service.NotificationService;
 import com.merkatocircle.iqub.service.RoundService;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -117,6 +119,40 @@ public class GroupController {
         redirectAttributes.addFlashAttribute("successMessage",
                 "Removed " + target.getMember().getFullName() + " from " + iqub.getName() + ".");
         return "redirect:/iqubs/" + iqubId + "/members";
+    }
+
+    @GetMapping("/groups")
+    public String groups(Authentication authentication, Model model) {
+        Member member = currentMemberProvider.get(authentication);
+        List<Iqub> groups = iqubRepository.findAll();
+        Map<Long, Membership> myMembershipsByGroup = groups.stream()
+                .flatMap(g -> membershipService.membersOf(g).stream())
+                .filter(m -> m.getMember().getId().equals(member.getId()))
+                .collect(Collectors.toMap(m -> m.getIqub().getId(), m -> m));
+
+        model.addAttribute("groups", groups);
+        model.addAttribute("myMembershipsByGroup", myMembershipsByGroup);
+        model.addAttribute("me", member);
+        model.addAttribute("createForm", new GroupForm());
+        return "groups";
+    }
+
+    @PostMapping("/groups")
+    public String create(@ModelAttribute GroupForm form, Authentication authentication, RedirectAttributes redirectAttributes) {
+        Member member = currentMemberProvider.get(authentication);
+        Iqub iqub = iqubRepository.save(new Iqub(form.name(), form.contributionAmount(), form.roundIntervalDays(), form.maxMembers(), LocalDate.now()));
+        iqub.setOrganizer(member);
+        iqub.setPayoutMode(form.auctionMode() ? PayoutMode.AUCTION : PayoutMode.LOTTERY);
+        iqubRepository.save(iqub);
+        membershipService.join(iqub, member, LocalDate.now());
+        redirectAttributes.addFlashAttribute("successMessage", "Circle created — you're the organizer.");
+        return "redirect:/iqubs/" + iqub.getId();
+    }
+
+    public record GroupForm(String name, java.math.BigDecimal contributionAmount, int roundIntervalDays, int maxMembers, boolean auctionMode) {
+        public GroupForm() {
+            this("", java.math.BigDecimal.ZERO, 7, 2, false);
+        }
     }
 
     private Iqub findIqub(Long iqubId) {

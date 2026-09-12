@@ -12,6 +12,18 @@
       <p th:text="'Welcome back, ' + ${member.firstName()} + '.'"></p>
     </div>
 
+    <div class="card" style="margin-bottom:18px;">
+      <h3 style="margin-bottom:12px;">Rotation wheel</h3>
+      <svg viewBox="0 0 240 240" width="240" height="240" style="display:block;margin:0 auto;" aria-label="Rotation wheel">
+        <circle cx="120" cy="120" r="100" fill="none" stroke="currentColor" stroke-width="2" opacity="0.2"></circle>
+        <circle cx="120" cy="120" r="6" fill="currentColor"></circle>
+        <g th:each="node, iter : ${wheelNodes}">
+          <circle th:attr="cx=${node.x}, cy=${node.y}, r=18" th:classappend="${node.colorClass}" opacity="0.9"></circle>
+          <text th:attr="x=${node.x}, y=${node.y}" text-anchor="middle" dy="5" fill="white" style="font-weight:600;font-size:14px;" th:text="${node.initial}"></text>
+        </g>
+      </svg>
+    </div>
+
     <div class="stack" th:if="${!memberships.isEmpty()}">
       <a class="card" style="text-decoration:none;color:inherit;display:block"
          th:each="m : ${memberships}" th:href="@{/iqubs/{id}(id=${m.iqub.id})}">

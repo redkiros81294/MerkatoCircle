@@ -8,6 +8,7 @@ import com.merkatocircle.iqub.domain.PlatformRole;
 import com.merkatocircle.iqub.domain.Round;
 import com.merkatocircle.iqub.exception.NotAuthorizedException;
 import com.merkatocircle.iqub.repository.IqubRepository;
+import com.merkatocircle.iqub.repository.MembershipRepository;
 import com.merkatocircle.iqub.service.BidService;
 import com.merkatocircle.iqub.service.ContributionService;
 import com.merkatocircle.iqub.service.CurrentMemberProvider;
@@ -37,19 +38,22 @@ public class RoundController {
     private final ContributionService contributionService;
     private final MembershipService membershipService;
     private final CurrentMemberProvider currentMemberProvider;
+    private final MembershipRepository membershipRepository;
 
     public RoundController(IqubRepository iqubRepository,
                             RoundService roundService,
                             BidService bidService,
                             ContributionService contributionService,
                             MembershipService membershipService,
-                            CurrentMemberProvider currentMemberProvider) {
+                            CurrentMemberProvider currentMemberProvider,
+                            MembershipRepository membershipRepository) {
         this.iqubRepository = iqubRepository;
         this.roundService = roundService;
         this.bidService = bidService;
         this.contributionService = contributionService;
         this.membershipService = membershipService;
         this.currentMemberProvider = currentMemberProvider;
+        this.membershipRepository = membershipRepository;
     }
 
     @GetMapping("/iqubs/{iqubId}/rounds")
@@ -57,6 +61,19 @@ public class RoundController {
         Iqub iqub = findIqub(iqubId);
         requireMember(iqub, authentication);
 
+        model.addAttribute("iqub", iqub);
+        model.addAttribute("rounds", roundService.getAllRounds(iqub));
+        return "rounds";
+    }
+
+    @GetMapping("/rounds")
+    public String allRounds(Authentication authentication, Model model) {
+        Member member = currentMemberProvider.get(authentication);
+        List<Membership> memberships = membershipRepository.findByMember(member);
+        if (memberships.isEmpty()) {
+            return "redirect:/dashboard";
+        }
+        Iqub iqub = memberships.get(0).getIqub();
         model.addAttribute("iqub", iqub);
         model.addAttribute("rounds", roundService.getAllRounds(iqub));
         return "rounds";

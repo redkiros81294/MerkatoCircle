@@ -109,7 +109,7 @@ class IqubSeleniumTest {
         driver.get(baseUrl() + "/register");
         pause(500);
         assertThat(driver.getTitle()).contains("Create account");
-        assertThat(driver.findElement(By.cssSelector("h1")).getText()).contains("Create your account");
+        assertThat(driver.findElement(By.cssSelector("h1")).getText()).contains("Join Merkato Circle");
 
         typeSlowly(driver.findElement(By.id("fullName")), "Selenium Test");
         pause(200);

@@ -28,9 +28,9 @@ public class RoundsPage extends BasePage {
     }
 
     public RoundDetailPage clickFirstRound() {
-        java.util.List<WebElement> rows = driver.findElements(By.cssSelector("table tbody tr.clickable"));
+        java.util.List<WebElement> rows = driver.findElements(By.cssSelector("table tbody tr"));
         if (!rows.isEmpty()) {
-            rows.get(0).click();
+            rows.get(0).findElement(By.cssSelector("a")).click();
             wait.until(ExpectedConditions.urlContains("/rounds/"));
             pause(600);
         }

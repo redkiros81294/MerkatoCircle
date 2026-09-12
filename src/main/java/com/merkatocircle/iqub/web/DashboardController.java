@@ -45,6 +45,11 @@ public class DashboardController {
         model.addAttribute("member", member);
         model.addAttribute("memberships", memberships);
         model.addAttribute("availableToJoin", availableToJoin);
+        model.addAttribute("wheelNodes", List.of(
+                new WheelNode(120, 120, "A", "badge--open", "Seat A"),
+                new WheelNode(220, 120, "B", "badge--pending", "Seat B"),
+                new WheelNode(170, 210, "C", "badge--closed", "Seat C")
+        ));
         return "dashboard";
     }
 }
