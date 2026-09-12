@@ -21,10 +21,16 @@ jobs:
           java-version: 21
           cache: maven
 
+      - name: Install Chrome for Selenium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+          sudo ln -s /usr/bin/chromium-browser /usr/bin/chromium
+
       - name: Create data directory
         run: mkdir -p data
 
-      - name: Run all tests
+      - name: Run unit and integration tests
         run: mvn clean test
 
       - name: Upload JaCoCo coverage report
