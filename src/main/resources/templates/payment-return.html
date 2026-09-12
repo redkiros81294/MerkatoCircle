@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment status — Merkato Circle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<main>
+  <div class="confirm-wrap">
+
+    <div th:if="${contribution.status.name() == 'PAID' or contribution.status.name() == 'PAID_LATE'}">
+      <div class="banner banner--success" style="text-align:left;">
+        <div>
+          <h3>Payment confirmed</h3>
+          <p style="margin:0;">Verified server-side against Chapa before your status changed — never just trusted on the redirect.</p>
+        </div>
+      </div>
+      <a th:href="@{/dashboard}" class="btn btn-primary" style="margin-top:18px;">Continue to dashboard</a>
+    </div>
+
+    <div th:if="${contribution.status.name() == 'PAYMENT_FAILED'}">
+      <div class="banner banner--error" style="text-align:left;">
+        <div>
+          <h3>Payment failed</h3>
+          <p style="margin:0;">Chapa reported this attempt as unsuccessful. Nothing was charged — you can try again.</p>
+        </div>
+      </div>
+      <a th:href="@{/contribute}" class="btn btn-primary" style="margin-top:18px;">Try again</a>
+    </div>
+
+    <div th:if="${contribution.status.name() == 'AWAITING_PAYMENT'}">
+      <div class="spin" role="status" aria-label="Confirming payment"></div>
+      <p>Still confirming your payment with Chapa — this can take a moment.</p>
+      <a th:href="@{/dashboard}" class="btn btn-ghost" style="margin-top:10px;">Back to dashboard</a>
+    </div>
+
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Place a bid — Merkato Circle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="authed">
+<div th:replace="~{layout :: topbar(active='rounds')}"></div>
+<main>
+  <div class="center">
+    <a th:href="@{/rounds/{id}(id=${round.id})}" class="btn btn-ghost" style="margin-bottom:16px;">&larr; Round <span th:text="${round.roundNumber}"></span></a>
+
+    <div class="card">
+      <h2>Place a bid</h2>
+      <p th:text="|Round ${round.roundNumber} pays out to whoever offers the biggest discount — everyone else splits what they saved.|"></p>
+
+      <div class="banner banner--win" th:if="${existingBid != null}">
+        <div><p style="margin:0;" th:text="|Your current offer: ${existingBid.discountPercent}% off, submitted ${#temporals.format(existingBid.submittedDate, 'd MMM yyyy')}.|"></p></div>
+      </div>
+
+      <form th:action="@{/rounds/{id}/bid(id=${round.id})}" method="post" style="margin-top:12px;">
+        <label for="discountPercent">Discount you're offering (0–30%)</label>
+        <input id="discountPercent" name="discountPercent" type="number" min="0" max="30" step="0.5"
+               th:value="${existingBid != null ? existingBid.discountPercent : 0}" required>
+        <p class="help">The higher your offer, the more likely you win this round — but the less you personally receive from the pool.</p>
+        <button type="submit" class="btn btn-primary btn-block">Submit bid</button>
+      </form>
+    </div>
+  </div>
+</main>
+</body>
+</html>

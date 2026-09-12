@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="topbar(active)" id="topbar">
+  <a class="brand" th:href="@{/dashboard}">
+    <svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" fill="none" stroke="#C08A3E" stroke-width="2" stroke-dasharray="1 4"/><circle cx="13" cy="4" r="3" fill="#1F6F5C"/><circle cx="20.4" cy="9.5" r="3" fill="#B98A3E"/><circle cx="17.6" cy="18.5" r="3" fill="#E2D9C3" stroke="#B98A3E"/></svg>
+    Merkato Circle
+  </a>
+  <nav class="mainnav" aria-label="Main">
+    <a th:href="@{/dashboard}" th:classappend="${active == 'dashboard'} ? 'active'">Dashboard</a>
+    <a th:href="@{/rounds}" th:classappend="${active == 'rounds'} ? 'active'">Rounds</a>
+    <a th:href="@{/groups}" th:classappend="${active == 'groups'} ? 'active'">Groups</a>
+    <a th:href="@{/account}" th:classappend="${active == 'account'} ? 'active'">Account</a>
+  </nav>
+  <div class="userchip">
+    <a class="iconbtn" th:href="@{/notifications}" aria-label="Notifications" title="Notifications" style="position:relative;">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 8a6 6 0 1112 0c0 3.5 1.2 4.8 1.2 4.8H2.8S4 11.5 4 8z" stroke="currentColor" stroke-width="1.5"/><path d="M8 15.5a2 2 0 004 0" stroke="currentColor" stroke-width="1.5"/></svg>
+      <span th:if="${unreadNotifications > 0}" class="badgecount" th:text="${unreadNotifications}"></span>
+    </a>
+    <a class="iconbtn" th:href="@{/settings}" aria-label="Settings" title="Settings">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" stroke="currentColor" stroke-width="1.6"/><path d="M16.2 12.3a1.4 1.4 0 00.28 1.54l.05.05a1.7 1.7 0 11-2.4 2.4l-.05-.05a1.4 1.4 0 00-1.54-.28 1.4 1.4 0 00-.85 1.28V17.4a1.7 1.7 0 01-3.4 0v-.08a1.4 1.4 0 00-.9-1.25 1.4 1.4 0 00-1.54.28l-.05.05a1.7 1.7 0 11-2.4-2.4l.05.05a1.4 1.4 0 00.28-1.54 1.4 1.4 0 00-1.28-.85H2.6a1.7 1.7 0 010-3.4h.08a1.4 1.4 0 001.25-.9 1.4 1.4 0 00-.28-1.54l-.05-.05a1.7 1.7 0 112.4-2.4l.05.05a1.4 1.4 0 001.54.28h.06a1.4 1.4 0 00.85-1.28V2.6a1.7 1.7 0 013.4 0v.08a1.4 1.4 0 00.85 1.28h.06a1.4 1.4 0 001.54-.28l.05-.05a1.7 1.7 0 112.4 2.4l-.05.05a1.4 1.4 0 00-.28 1.54v.06a1.4 1.4 0 001.28.85h.14a1.7 1.7 0 010 3.4h-.08a1.4 1.4 0 00-1.25.85z" stroke="currentColor" stroke-width="1.3"/></svg>
+    </a>
+    <a class="avatar" th:href="@{/account}" th:text="${me != null ? #strings.substring(me.firstName(),0,1) : '?'}" aria-label="Go to account">?</a>
+    <form th:action="@{/logout}" method="post" style="display:inline;margin:0;">
+      <button type="submit" class="logout">Log out</button>
+    </form>
+  </div>
+</div>
+
+<div th:fragment="messages">
+  <div class="banner banner--success" th:if="${infoMessage}">
+    <div><p style="margin:0;" th:text="${infoMessage}"></p></div>
+  </div>
+  <div class="banner banner--error" th:if="${errorMessage}">
+    <div><p style="margin:0;" th:text="${errorMessage}"></p></div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groups — Merkato Circle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="authed">
+<div th:replace="~{layout :: topbar(active='groups')}"></div>
+<main>
+  <div th:replace="~{layout :: messages}"></div>
+  <h2 style="margin-bottom:2px;">Groups</h2>
+  <p style="margin-bottom:18px;">Your main iqub lives on the Dashboard. This is every circle on Merkato Circle, including ones you organize.</p>
+
+  <div class="stack">
+    <div class="card" th:each="g : ${groups}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+        <div>
+          <h3 style="margin-bottom:4px;" th:text="${g.name}"></h3>
+          <p style="margin:0;" th:text="|${#numbers.formatDecimal(g.contributionAmount,0,0)} ETB every ${g.roundIntervalDays} days · up to ${g.maxMembers} members|"></p>
+          <span class="badge badge--closed" th:if="${g.payoutMode.name() == 'AUCTION'}" style="margin-top:8px;">Auction payouts</span>
+          <span class="badge badge--open" th:if="${g.payoutMode.name() == 'LOTTERY'}" style="margin-top:8px;">Lottery payouts</span>
+        </div>
+
+        <div th:with="mine=${myMembershipsByGroup.get(g.id)}">
+          <div th:if="${mine != null}">
+            <span class="badge badge--active" th:if="${mine.status.name() == 'ACTIVE'}">You're active</span>
+            <span class="badge badge--pending" th:if="${mine.status.name() == 'WAITLISTED'}">You're waitlisted</span>
+            <span class="badge badge--defaulted" th:if="${mine.status.name() == 'DEFAULTED'}">You're defaulted</span>
+          </div>
+          <form th:if="${mine == null}" th:action="@{/groups/join}" method="post">
+            <input type="hidden" name="iqubId" th:value="${g.id}">
+            <button type="submit" class="btn btn-ghost">Join</button>
+          </form>
+          <a th:if="${g.organizer != null and me != null and (g.organizer.id == me.id or me.platformRole.name() == 'ADMIN')}"
+             th:href="@{/groups/{id}/members(id=${g.id})}" class="btn btn-ghost" style="margin-top:8px;display:block;text-align:center;">Manage members</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:12px;">Start a new circle</h3>
+      <form th:action="@{/groups}" th:object="${createForm}" method="post">
+        <label for="name">Group name</label>
+        <input id="name" th:field="*{name}" type="text" placeholder="e.g. Bole Weekly Circle" required>
+
+        <div class="split">
+          <div>
+            <label for="contributionAmount">Contribution per round (ETB)</label>
+            <input id="contributionAmount" th:field="*{contributionAmount}" type="number" step="0.01" min="1" required>
+          </div>
+          <div>
+            <label for="roundIntervalDays">Days between rounds</label>
+            <input id="roundIntervalDays" th:field="*{roundIntervalDays}" type="number" min="1" required>
+          </div>
+        </div>
+        <div class="split">
+          <div>
+            <label for="maxMembers">Max members</label>
+            <input id="maxMembers" th:field="*{maxMembers}" type="number" min="2" required>
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <label class="checkbox-row">
+              <input type="checkbox" th:field="*{auctionMode}" style="width:auto;min-height:auto;margin:0;">
+              Auction-style payouts (Tier 3)
+            </label>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Create group — you'll be the organizer</button>
+      </form>
+    </div>
+  </div>
+</main>
+</body>
+</html>

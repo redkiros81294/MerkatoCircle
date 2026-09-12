@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — Merkato Circle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="authed">
+<div th:replace="~{layout :: topbar(active='account')}"></div>
+<main>
+  <a th:href="@{/account}" class="btn btn-ghost" style="margin-bottom:16px;">&larr; Back to account</a>
+  <h2 style="margin-bottom:18px;">Settings</h2>
+  <div th:replace="~{layout :: messages}"></div>
+
+  <div class="stack">
+    <div class="card">
+      <form th:action="@{/settings/profile}" th:object="${profileForm}" method="post">
+        <fieldset>
+          <legend>Profile</legend>
+          <label for="fullName">Full name</label>
+          <input id="fullName" th:field="*{fullName}" type="text">
+          <p class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></p>
+
+          <label for="phone">Phone</label>
+          <input id="phone" th:field="*{phone}" type="tel">
+          <p class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
+
+          <button type="submit" class="btn btn-primary">Save profile</button>
+        </fieldset>
+      </form>
+    </div>
+
+    <div class="card">
+      <form th:action="@{/settings/password}" th:object="${passwordForm}" method="post">
+        <fieldset>
+          <legend>Password</legend>
+          <label for="currentPassword">Current password</label>
+          <input id="currentPassword" th:field="*{currentPassword}" type="password">
+          <p class="field-error" th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></p>
+
+          <label for="newPassword">New password</label>
+          <input id="newPassword" th:field="*{newPassword}" type="password">
+          <p class="field-error" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></p>
+
+          <button type="submit" class="btn btn-primary">Update password</button>
+        </fieldset>
+      </form>
+    </div>
+
+    <div class="card card--tight" style="background:var(--paper);">
+      <p style="margin:0;font-size:14px;"><strong style="color:var(--ink);">Payment details:</strong> Merkato Circle never stores your card. Every payment goes through Chapa's secure hosted checkout — we only ever see whether it succeeded.</p>
+    </div>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pay your contribution — Merkato Circle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="authed">
+<div th:replace="~{layout :: topbar(active='dashboard')}"></div>
+<main>
+  <div class="center">
+    <a th:href="@{/dashboard}" class="btn btn-ghost" style="margin-bottom:16px;">&larr; Back to dashboard</a>
+
+    <div class="card" th:if="${contribution.status.name() == 'PAID' or contribution.status.name() == 'PAID_LATE'}">
+      <div class="banner banner--success">
+        <div>
+          <h3>You're settled</h3>
+          <p style="margin:0;" th:text="|Your payment for round ${round.roundNumber} is recorded. Nothing else to do until the next round.|"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" th:unless="${contribution.status.name() == 'PAID' or contribution.status.name() == 'PAID_LATE'}">
+      <h2>Confirm payment</h2>
+      <p th:text="|Round ${round.roundNumber} · due ${#temporals.format(round.deadline, 'd MMM yyyy')}|"></p>
+      <p th:if="${contribution.status.name() == 'PAYMENT_FAILED'}" style="color:var(--clay-dark);">Your last attempt failed. Nothing was charged — try again below.</p>
+
+      <div class="card--tight" style="background:var(--paper);border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+        <p style="margin-bottom:4px;">Amount due</p>
+        <div class="amount" style="font-size:32px;color:var(--ink);" th:text="|${#numbers.formatDecimal(contribution.amountDue,0,2)} ETB|">0.00 ETB</div>
+      </div>
+
+      <form th:action="@{/contribute/pay}" method="post">
+        <button type="submit" class="btn btn-primary btn-block">Pay with Chapa</button>
+      </form>
+      <p class="help" style="margin-top:12px;">You'll be sent to Chapa's secure checkout, then straight back here — the amount is fixed by the group, not something you type in.</p>
+    </div>
+  </div>
+</main>
+</body>
+</html>
