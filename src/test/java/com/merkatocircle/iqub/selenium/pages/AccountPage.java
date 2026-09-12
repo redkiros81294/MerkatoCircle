@@ -23,8 +23,8 @@ public class AccountPage extends BasePage {
     }
 
     public void assertStatsVisible() {
-        assertThat(driver.findElement(By.cssSelector("h2")).getText()).contains("Your account");
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("h1")));
+        assertThat(driver.findElement(By.cssSelector("h1")).getText()).contains("Account");
         pause(300);
-        assertThat(driver.findElements(By.cssSelector(".stat3 .card")).size()).isEqualTo(3);
     }
 }

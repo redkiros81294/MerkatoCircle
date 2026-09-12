@@ -43,6 +43,8 @@ class IqubSeleniumTest {
     @BeforeEach
     void setUp() {
         ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless=new");
+        options.addArguments("--window-size=1920,1080");
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
@@ -79,7 +81,7 @@ class IqubSeleniumTest {
     @Test
     @DisplayName("PAGE 1: Login page loads and authenticates")
     void loginPageLoadsAndAuthenticates() {
-        new LoginPage(driver).open(baseUrl()).assertTitleContains("Log in");
+        new LoginPage(driver).open(baseUrl()).assertTitleContains("Sign in");
         assertThat(driver.findElement(By.cssSelector("h1")).getText()).contains("Merkato Circle");
 
         loginAs(SELAM_EMAIL, PASSWORD);
@@ -106,7 +108,7 @@ class IqubSeleniumTest {
     void registrationPageLoadsAndCreatesAccount() {
         driver.get(baseUrl() + "/register");
         pause(500);
-        assertThat(driver.getTitle()).contains("Create your account");
+        assertThat(driver.getTitle()).contains("Create account");
         assertThat(driver.findElement(By.cssSelector("h1")).getText()).contains("Create your account");
 
         typeSlowly(driver.findElement(By.id("fullName")), "Selenium Test");
@@ -134,7 +136,7 @@ class IqubSeleniumTest {
     void dashboardShowsWheelAndStatus() {
         loginAs(SELAM_EMAIL, PASSWORD);
         pause(500);
-        assertThat(driver.getTitle()).contains("Dashboard");
+        assertThat(driver.getTitle()).contains("My Groups");
 
         new DashboardPage(driver).assertWheelVisible();
         new DashboardPage(driver).assertHeadingContains("Round");
@@ -310,12 +312,12 @@ class IqubSeleniumTest {
         loginAs(SELAM_EMAIL, PASSWORD);
         pause(400);
 
-        String[] navLinks = {"Dashboard", "Rounds", "Groups", "Account"};
-        for (String link : navLinks) {
-            driver.findElement(By.linkText(link)).click();
-            wait(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/" + link.toLowerCase()));
+        String[][] navLinks = {{"My Groups", "/dashboard"}, {"Notifications", "/notifications"}, {"Account", "/account"}};
+        for (String[] link : navLinks) {
+            driver.findElement(By.linkText(link[0])).click();
+            wait(org.openqa.selenium.support.ui.ExpectedConditions.urlContains(link[1]));
             pause(500);
-            assertThat(driver.getCurrentUrl()).contains("/" + link.toLowerCase());
+            assertThat(driver.getCurrentUrl()).contains(link[1]);
         }
     }
 
