@@ -127,4 +127,59 @@ class BidServiceTest {
         assertThat(revised).isSameAs(existing);
         verify(bidRepository).save(existing);
     }
+
+    @Test
+    @DisplayName("getTopBid: returns highest discount among eligible bidders")
+    void getTopBid_returnsHighestDiscount() {
+        Iqub iqub = iqub(PayoutMode.AUCTION);
+        Round r = round(iqub, 1, RoundStatus.OPEN);
+        Member alice = member("Alice");
+        Member bob = member("Bob");
+
+        Bid aliceBid = new Bid(r, alice, new BigDecimal("20"), LocalDate.now(clock));
+        Bid bobBid = new Bid(r, bob, new BigDecimal("15"), LocalDate.now(clock));
+
+        when(bidRepository.findByRound(r)).thenReturn(List.of(aliceBid, bobBid));
+        when(eligibilityChecker.isEligible(r, alice)).thenReturn(true);
+        when(eligibilityChecker.isEligible(r, bob)).thenReturn(true);
+
+        Optional<Bid> topBid = service.getTopBid(r);
+
+        assertThat(topBid).isPresent();
+        assertThat(topBid.get().getMember()).isEqualTo(alice);
+    }
+
+    @Test
+    @DisplayName("getTopBid: filters out ineligible bidders")
+    void getTopBid_filtersIneligible() {
+        Iqub iqub = iqub(PayoutMode.AUCTION);
+        Round r = round(iqub, 1, RoundStatus.OPEN);
+        Member alice = member("Alice");
+        Member bob = member("Bob");
+
+        Bid aliceBid = new Bid(r, alice, new BigDecimal("20"), LocalDate.now(clock));
+        Bid bobBid = new Bid(r, bob, new BigDecimal("25"), LocalDate.now(clock));
+
+        when(bidRepository.findByRound(r)).thenReturn(List.of(aliceBid, bobBid));
+        when(eligibilityChecker.isEligible(r, alice)).thenReturn(true);
+        when(eligibilityChecker.isEligible(r, bob)).thenReturn(false);
+
+        Optional<Bid> topBid = service.getTopBid(r);
+
+        assertThat(topBid).isPresent();
+        assertThat(topBid.get().getMember()).isEqualTo(alice);
+    }
+
+    @Test
+    @DisplayName("getTopBid: empty when no bids")
+    void getTopBid_emptyWhenNoBids() {
+        Iqub iqub = iqub(PayoutMode.AUCTION);
+        Round r = round(iqub, 1, RoundStatus.OPEN);
+
+        when(bidRepository.findByRound(r)).thenReturn(Collections.emptyList());
+
+        Optional<Bid> topBid = service.getTopBid(r);
+
+        assertThat(topBid).isEmpty();
+    }
 }
