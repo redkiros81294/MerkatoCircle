@@ -17,9 +17,9 @@ public class RoundsPage extends BasePage {
 
     public RoundsPage open(String baseUrl) {
         driver.get(baseUrl + "/rounds");
-        pause(500);
+        pause(50);
         wait.until(ExpectedConditions.urlContains("/rounds"));
-        pause(500);
+        pause(50);
         return this;
     }
 
@@ -38,7 +38,7 @@ public class RoundsPage extends BasePage {
             if (!row.findElements(By.cssSelector("a")).isEmpty()) {
                 row.findElement(By.cssSelector("a")).click();
                 wait.until(ExpectedConditions.urlContains("/rounds/"));
-                pause(600);
+                pause(50);
                 break;
             }
         }

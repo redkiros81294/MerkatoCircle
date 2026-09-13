@@ -17,9 +17,9 @@ public class ContributePage extends BasePage {
 
     public ContributePage open(String baseUrl) {
         driver.get(baseUrl + "/contribute");
-        pause(500);
+        pause(50);
         wait.until(ExpectedConditions.urlContains("/contribute"));
-        pause(500);
+        pause(50);
         return this;
     }
 
@@ -34,7 +34,7 @@ public class ContributePage extends BasePage {
     public FakeCheckoutPage clickPay() {
         driver.findElement(By.cssSelector("form[action='/contribute/pay'] button")).click();
         wait.until(ExpectedConditions.urlContains("/test/fake-checkout"));
-        pause(600);
+        pause(50);
         return new FakeCheckoutPage(driver);
     }
 }

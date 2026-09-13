@@ -19,7 +19,7 @@ public class DashboardPage extends BasePage {
         WebElement wheel = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.cssSelector("svg[aria-label*='Rotation wheel']")));
         assertThat(wheel).isNotNull();
-        pause(400);
+        pause(50);
     }
 
     public void assertHeadingContains(String text) {

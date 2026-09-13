@@ -16,9 +16,9 @@ public class GroupsPage extends BasePage {
 
     public GroupsPage open(String baseUrl) {
         driver.get(baseUrl + "/groups");
-        pause(500);
+        pause(50);
         wait.until(ExpectedConditions.urlContains("/groups"));
-        pause(500);
+        pause(50);
         return this;
     }
 

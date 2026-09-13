@@ -48,10 +48,9 @@ class IqubSeleniumTest {
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
-        // Use locally installed Chromium for headless CI/testing
-        // NOTE: In CI environments without local Chromium, remove this line and let
-        // SeleniumManager auto-download Chromium, or set CHROME_BIN env variable.
-        options.setBinary("/usr/bin/chromium");
+        // Allow SeleniumManager to auto-download and manage ChromeDriver + Chromium
+        // for CI environments without a pre-installed browser binary.
+        // Set CHROME_BIN env variable if you need to use a specific Chromium binary.
         driver = new ChromeDriver(options);
     }
 
@@ -111,24 +110,24 @@ class IqubSeleniumTest {
     @DisplayName("PAGE 2: Registration page loads and creates account")
     void registrationPageLoadsAndCreatesAccount() {
         driver.get(baseUrl() + "/register");
-        pause(500);
+        pause(100);
         assertThat(driver.getTitle()).contains("Create account");
         assertThat(driver.findElement(By.cssSelector("h1")).getText()).contains("Join Merkato Circle");
 
         typeSlowly(driver.findElement(By.id("fullName")), "Selenium Test");
-        pause(200);
+        pause(50);
         typeSlowly(driver.findElement(By.id("email")), "selenium" + System.currentTimeMillis() + "@example.com");
-        pause(200);
+        pause(50);
         typeSlowly(driver.findElement(By.id("phone")), "0712345678");
-        pause(200);
+        pause(50);
         typeSlowly(driver.findElement(By.id("password")), "password123");
-        pause(200);
+        pause(50);
         typeSlowly(driver.findElement(By.id("confirmPassword")), "password123");
-        pause(200);
+        pause(50);
         driver.findElement(By.cssSelector("button[type='submit']")).click();
 
         wait(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/login"));
-        pause(500);
+        pause(100);
         assertThat(driver.getCurrentUrl()).contains("/login");
     }
 
@@ -139,7 +138,7 @@ class IqubSeleniumTest {
     @DisplayName("PAGE 3: Dashboard shows rotation wheel and round status")
     void dashboardShowsWheelAndStatus() {
         loginAs(SELAM_EMAIL, PASSWORD);
-        pause(500);
+        pause(50);
         assertThat(driver.getTitle()).contains("My Groups");
 
         new DashboardPage(driver).assertWheelVisible();
@@ -267,13 +266,13 @@ class IqubSeleniumTest {
     void manageMembersPageShowsRoster() {
         loginAs(SELAM_EMAIL, PASSWORD);
         new GroupsPage(driver).open(baseUrl());
-        pause(400);
+        pause(50);
 
         java.util.List<WebElement> manageLinks = driver.findElements(By.cssSelector("a[href*='/groups/'][href*='/members']"));
         if (!manageLinks.isEmpty()) {
             manageLinks.get(0).click();
             wait(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/members"));
-            pause(600);
+            pause(50);
             assertThat(driver.getCurrentUrl()).contains("/members");
         }
     }
@@ -302,7 +301,7 @@ class IqubSeleniumTest {
         if (!bidLinks.isEmpty()) {
             bidLinks.get(0).click();
             wait(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/bid"));
-            pause(600);
+            pause(50);
             assertThat(driver.getCurrentUrl()).contains("/bid");
         }
     }
@@ -314,13 +313,13 @@ class IqubSeleniumTest {
     @DisplayName("JOURNEY: All topbar navigation links work correctly")
     void allTopbarNavLinksWork() {
         loginAs(SELAM_EMAIL, PASSWORD);
-        pause(400);
+        pause(50);
 
         String[][] navLinks = {{"My Groups", "/dashboard"}, {"Notifications", "/notifications"}, {"Account", "/account"}};
         for (String[] link : navLinks) {
             driver.findElement(By.linkText(link[0])).click();
             wait(org.openqa.selenium.support.ui.ExpectedConditions.urlContains(link[1]));
-            pause(500);
+            pause(50);
             assertThat(driver.getCurrentUrl()).contains(link[1]);
         }
     }
@@ -332,12 +331,12 @@ class IqubSeleniumTest {
     @DisplayName("JOURNEY: Logout clears session and login restores it")
     void logoutAndReLogin() {
         loginAs(SELAM_EMAIL, PASSWORD);
-        pause(400);
+        pause(50);
         assertThat(driver.getCurrentUrl()).contains("/dashboard");
 
         driver.findElement(By.cssSelector("button.logout")).click();
         wait(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/login"));
-        pause(600);
+        pause(50);
         assertThat(driver.getCurrentUrl()).contains("/login");
 
         loginAs(SELAM_EMAIL, PASSWORD);
@@ -351,9 +350,9 @@ class IqubSeleniumTest {
     @DisplayName("JOURNEY: Unauthenticated access to protected page redirects to login")
     void unauthenticatedAccessRedirectsToLogin() {
         driver.get(baseUrl() + "/dashboard");
-        pause(500);
+        pause(50);
         wait(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/login"));
-        pause(400);
+        pause(50);
         assertThat(driver.getCurrentUrl()).contains("/login");
     }
 
@@ -384,7 +383,7 @@ class IqubSeleniumTest {
     private void typeSlowly(org.openqa.selenium.WebElement element, String text) {
         for (char c : text.toCharArray()) {
             element.sendKeys(String.valueOf(c));
-            pause(80 + (long) (Math.random() * 60));
+            pause(10);
         }
     }
 

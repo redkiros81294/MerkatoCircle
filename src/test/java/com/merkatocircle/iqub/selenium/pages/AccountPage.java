@@ -16,15 +16,15 @@ public class AccountPage extends BasePage {
 
     public AccountPage open(String baseUrl) {
         driver.get(baseUrl + "/account");
-        pause(500);
+        pause(50);
         wait.until(ExpectedConditions.urlContains("/account"));
-        pause(500);
+        pause(50);
         return this;
     }
 
     public void assertStatsVisible() {
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("h1")));
         assertThat(driver.findElement(By.cssSelector("h1")).getText()).contains("Account");
-        pause(300);
+        pause(50);
     }
 }
