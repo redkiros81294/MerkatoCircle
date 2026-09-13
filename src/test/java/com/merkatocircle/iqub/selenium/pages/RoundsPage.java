@@ -27,17 +27,9 @@ public class RoundsPage extends BasePage {
         try {
             wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("table")));
         } catch (Exception e) {
-            System.out.println("=== NO TABLE FOUND ===");
-            System.out.println(driver.getPageSource());
             return false;
         }
-        java.util.List<WebElement> rows = driver.findElements(By.cssSelector("table tbody tr"));
-        System.out.println("=== ROWS FOUND: " + rows.size() + " ===");
-        if (rows.isEmpty()) {
-            System.out.println("=== PAGE SOURCE ===");
-            System.out.println(driver.getPageSource());
-        }
-        return !rows.isEmpty();
+        return !driver.findElements(By.cssSelector("table tbody tr")).isEmpty();
     }
 
     public RoundDetailPage clickFirstRound() {
