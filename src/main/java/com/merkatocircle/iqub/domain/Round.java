@@ -22,7 +22,7 @@ public class Round {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "iqub_id", nullable = false)
     private Iqub iqub;
 
@@ -36,7 +36,7 @@ public class Round {
     @Column(nullable = false)
     private RoundStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "winner_member_id")
     private Member winner;
 

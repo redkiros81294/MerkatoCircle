@@ -16,15 +16,15 @@ public class SettingsPage extends BasePage {
 
     public SettingsPage open(String baseUrl) {
         driver.get(baseUrl + "/settings");
-        pause(500);
+        pause(50);
         wait.until(ExpectedConditions.urlContains("/settings"));
-        pause(500);
+        pause(50);
         return this;
     }
 
     public void assertFormsVisible() {
         assertThat(driver.findElement(By.cssSelector("h2")).getText()).contains("Settings");
-        pause(300);
+        pause(50);
         assertThat(driver.findElement(By.id("fullName")).isDisplayed()).isTrue();
         assertThat(driver.findElement(By.id("phone")).isDisplayed()).isTrue();
         assertThat(driver.findElement(By.id("currentPassword")).isDisplayed()).isTrue();

@@ -60,4 +60,30 @@ class MemberServiceTest {
         assertThat(m.getPlatformRole()).isEqualTo(com.merkatocircle.iqub.domain.PlatformRole.MEMBER);
         verify(memberRepository).save(m);
     }
+
+    @Test
+    @DisplayName("updateProfile sets name and phone")
+    void updateProfileSetsNameAndPhone() {
+        Member m = new Member("Old Name", "old@test.com", "0712345678", "hash", LocalDate.now(clock));
+        when(memberRepository.save(m)).thenAnswer(i -> i.getArgument(0));
+
+        service.updateProfile(m, "New Name", "0987654321");
+
+        assertThat(m.getFullName()).isEqualTo("New Name");
+        assertThat(m.getPhone()).isEqualTo("0987654321");
+        verify(memberRepository).save(m);
+    }
+
+    @Test
+    @DisplayName("changePassword encodes and saves")
+    void changePasswordEncodesAndSaves() {
+        Member m = new Member("Test", "test@test.com", "0712345678", "oldhash", LocalDate.now(clock));
+        when(passwordEncoder.encode("newpassword")).thenReturn("NEW_HASH");
+        when(memberRepository.save(m)).thenAnswer(i -> i.getArgument(0));
+
+        service.changePassword(m, "newpassword");
+
+        assertThat(m.getPasswordHash()).isEqualTo("NEW_HASH");
+        verify(memberRepository).save(m);
+    }
 }

@@ -21,6 +21,8 @@
       <p class="help">Format: 07xxxxxxxx or 09xxxxxxxx</p>
       <label for="password">Password</label>
       <input id="password" name="password" type="password" minlength="8" required>
+      <label for="confirmPassword">Confirm password</label>
+      <input id="confirmPassword" name="confirmPassword" type="password" minlength="8" required>
       <button class="btn btn-primary btn-block" type="submit">Create account</button>
     </form>
     <p class="switch-line">Already have an account? <a th:href="@{/login}">Sign in</a></p>

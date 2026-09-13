@@ -21,22 +21,19 @@ jobs:
           java-version: 21
           cache: maven
 
-      - name: Set up ChromeDriver
-        uses: nanasess/setup-chromedriver@master
-        with:
-          chromedriver-version: '152'
-
       - name: Install Chrome for Selenium
         run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser
-          sudo ln -sf /usr/bin/chromium-browser /usr/bin/chromium
 
       - name: Create data directory
         run: mkdir -p data
 
       - name: Run unit and integration tests
         run: mvn clean test
+        env:
+          # Ensure SeleniumManager can find Chrome binary
+          CHROME_BIN: /usr/bin/chromium-browser
 
       - name: Upload JaCoCo coverage report
         uses: actions/upload-artifact@v4

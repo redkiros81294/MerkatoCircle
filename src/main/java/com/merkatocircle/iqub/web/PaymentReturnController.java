@@ -26,8 +26,7 @@ public class PaymentReturnController {
                            @RequestParam(value = "tx_ref", required = false) String txRef, Model model) {
         Contribution contribution = null;
         if (txRef != null) {
-            contribution = contributionService.findByTxRef(txRef)
-                    .orElseThrow(() -> new IllegalArgumentException("Unknown tx_ref: " + txRef));
+            contribution = contributionService.findByTxRef(txRef);
             contribution = contributionService.confirmPayment(txRef);
         } else if (contributionId != null) {
             contribution = contributionService.findById(contributionId);

@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 
@@ -91,5 +92,125 @@ class MembershipServiceTest {
 
         verify(membershipRepository).delete(activeAlice);
         assertThat(waitlistedBob.getStatus()).isEqualTo(MembershipStatus.ACTIVE);
+    }
+
+    @Test
+    @DisplayName("removeMember: removing WAITLISTED member does not promote")
+    void removeWaitlistedDoesNotPromote() {
+        Iqub group = iqub(2);
+        Member bob = member("Bob");
+        Membership waitlisted = new Membership(bob, group, LocalDate.now(clock), MembershipStatus.WAITLISTED);
+
+        service.removeMember(waitlisted);
+
+        verify(membershipRepository).delete(waitlisted);
+        verify(membershipRepository, never()).findByIqubAndStatus(any(), any());
+    }
+
+    @Test
+    @DisplayName("promoteNextWaitlisted: no waitlisted returns empty")
+    void promoteNextWaitlisted_noWaitlisted() {
+        Iqub group = iqub(2);
+        when(membershipRepository.findByIqubAndStatus(group, MembershipStatus.WAITLISTED))
+                .thenReturn(Collections.emptyList());
+
+        Optional<Membership> promoted = service.promoteNextWaitlisted(group);
+
+        assertThat(promoted).isEmpty();
+    }
+
+    @Test
+    @DisplayName("promoteNextWaitlisted: promotes earliest waitlisted")
+    void promoteNextWaitlisted_promotesEarliest() {
+        Iqub group = iqub(3);
+        Member bob = member("Bob");
+        Member alice = member("Alice");
+        Membership waitBob = new Membership(bob, group, LocalDate.now(clock), MembershipStatus.WAITLISTED);
+        Membership waitAlice = new Membership(alice, group, LocalDate.now(clock).minusDays(1), MembershipStatus.WAITLISTED);
+
+        when(membershipRepository.findByIqubAndStatus(group, MembershipStatus.WAITLISTED))
+                .thenReturn(List.of(waitBob, waitAlice));
+        when(membershipRepository.save(any(Membership.class))).thenAnswer(i -> i.getArgument(0));
+
+        Optional<Membership> promoted = service.promoteNextWaitlisted(group);
+
+        assertThat(promoted).isPresent();
+        assertThat(promoted.get().getMember().getFullName()).isEqualTo("Alice");
+        assertThat(promoted.get().getStatus()).isEqualTo(MembershipStatus.ACTIVE);
+        verify(notificationService).notify(alice, "A seat opened up in " + group.getName() + " — you're off the waitlist and active from this round.");
+    }
+
+    @Test
+    @DisplayName("join: ACTIVE member triggers backfill when round is open")
+    void joinActive_backfillsContribution() {
+        Iqub group = iqub(5);
+        Member alice = member("Alice");
+        com.merkatocircle.iqub.domain.Round openRound = new com.merkatocircle.iqub.domain.Round(group, 1, LocalDate.now(clock).plusDays(7));
+        openRound.setStatus(com.merkatocircle.iqub.domain.RoundStatus.OPEN);
+
+        when(membershipRepository.countByIqubAndStatus(group, MembershipStatus.ACTIVE)).thenReturn(0L);
+        when(membershipRepository.save(any(Membership.class))).thenAnswer(i -> i.getArgument(0));
+        when(roundRepository.findTopByIqubOrderByRoundNumberDesc(group)).thenReturn(Optional.of(openRound));
+        when(contributionRepository.findByRoundAndMember(openRound, alice)).thenReturn(Optional.empty());
+        when(contributionRepository.save(any(Contribution.class))).thenAnswer(i -> i.getArgument(0));
+
+        Membership membership = service.join(group, alice, LocalDate.now(clock));
+
+        assertThat(membership.getStatus()).isEqualTo(MembershipStatus.ACTIVE);
+        verify(contributionRepository).save(any(Contribution.class));
+    }
+
+    @Test
+    @DisplayName("join: ACTIVE member does not backfill when round is closed")
+    void joinActive_noBackfillWhenRoundClosed() {
+        Iqub group = iqub(5);
+        Member alice = member("Alice");
+        com.merkatocircle.iqub.domain.Round closedRound = new com.merkatocircle.iqub.domain.Round(group, 1, LocalDate.now(clock).minusDays(7));
+        closedRound.setStatus(com.merkatocircle.iqub.domain.RoundStatus.CLOSED);
+
+        when(membershipRepository.countByIqubAndStatus(group, MembershipStatus.ACTIVE)).thenReturn(0L);
+        when(membershipRepository.save(any(Membership.class))).thenAnswer(i -> i.getArgument(0));
+        when(roundRepository.findTopByIqubOrderByRoundNumberDesc(group)).thenReturn(Optional.of(closedRound));
+
+        Membership membership = service.join(group, alice, LocalDate.now(clock));
+
+        assertThat(membership.getStatus()).isEqualTo(MembershipStatus.ACTIVE);
+        verify(contributionRepository, never()).save(any(Contribution.class));
+    }
+
+    @Test
+    @DisplayName("join: WAITLISTED member does not trigger backfill")
+    void joinWaitlisted_noBackfill() {
+        Iqub group = iqub(1);
+        Member alice = member("Alice");
+        Member bob = member("Bob");
+
+        when(membershipRepository.countByIqubAndStatus(group, MembershipStatus.ACTIVE)).thenReturn(1L);
+        when(membershipRepository.save(any(Membership.class))).thenAnswer(i -> i.getArgument(0));
+
+        Membership membership = service.join(group, bob, LocalDate.now(clock));
+
+        assertThat(membership.getStatus()).isEqualTo(MembershipStatus.WAITLISTED);
+        verify(roundRepository, never()).findTopByIqubOrderByRoundNumberDesc(any());
+    }
+
+    @Test
+    @DisplayName("ensureContribution: existing contribution is not saved again")
+    void ensureContribution_existingIsNotSaved() {
+        Iqub group = iqub(5);
+        Member alice = member("Alice");
+        com.merkatocircle.iqub.domain.Round openRound = new com.merkatocircle.iqub.domain.Round(group, 1, LocalDate.now(clock).plusDays(7));
+        openRound.setStatus(com.merkatocircle.iqub.domain.RoundStatus.OPEN);
+        Contribution existing = new Contribution(openRound, alice, new BigDecimal("500.00"));
+
+        when(membershipRepository.countByIqubAndStatus(group, MembershipStatus.ACTIVE)).thenReturn(0L);
+        when(membershipRepository.save(any(Membership.class))).thenAnswer(i -> i.getArgument(0));
+        when(roundRepository.findTopByIqubOrderByRoundNumberDesc(group)).thenReturn(Optional.of(openRound));
+        when(contributionRepository.findByRoundAndMember(openRound, alice)).thenReturn(Optional.of(existing));
+
+        Membership membership = service.join(group, alice, LocalDate.now(clock));
+
+        assertThat(membership.getStatus()).isEqualTo(MembershipStatus.ACTIVE);
+        verify(contributionRepository, never()).save(any(Contribution.class));
     }
 }

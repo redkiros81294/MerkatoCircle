@@ -39,7 +39,7 @@ public class Iqub {
     private PayoutMode payoutMode;
 
     /** Tier 2 field — the group's creator/organizer. Null is fine for Tier 1's single seeded group. */
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "organizer_id")
     private Member organizer;
 

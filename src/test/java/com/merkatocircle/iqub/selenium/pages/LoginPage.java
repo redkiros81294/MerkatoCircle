@@ -17,35 +17,35 @@ public class LoginPage extends BasePage {
 
     public LoginPage open(String baseUrl) {
         driver.get(baseUrl + "/login");
-        pause(500);
+        pause(100);
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
-        pause(300);
+        pause(50);
         return this;
     }
 
     public LoginPage enterUsername(String email) {
         typeSlowly(driver.findElement(By.id("username")), email);
-        pause(200);
+        pause(50);
         return this;
     }
 
     public LoginPage enterPassword(String password) {
         typeSlowly(driver.findElement(By.id("password")), password);
-        pause(200);
+        pause(50);
         return this;
     }
 
     public DashboardPage submit() {
         driver.findElement(By.cssSelector("button[type='submit']")).click();
         wait.until(ExpectedConditions.urlContains("/dashboard"));
-        pause(600);
+        pause(100);
         return new DashboardPage(driver);
     }
 
     public LoginPage submitExpectingError() {
         driver.findElement(By.cssSelector("button[type='submit']")).click();
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".banner--error")));
-        pause(400);
+        pause(100);
         return this;
     }
 

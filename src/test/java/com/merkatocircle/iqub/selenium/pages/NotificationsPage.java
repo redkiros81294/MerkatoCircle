@@ -16,15 +16,15 @@ public class NotificationsPage extends BasePage {
 
     public NotificationsPage open(String baseUrl) {
         driver.get(baseUrl + "/notifications");
-        pause(500);
+        pause(50);
         wait.until(ExpectedConditions.urlContains("/notifications"));
-        pause(500);
+        pause(50);
         return this;
     }
 
     public void assertHasContent() {
         assertThat(driver.getTitle()).contains("Notifications");
-        pause(300);
+        pause(50);
         boolean hasNotifications = driver.findElements(By.cssSelector(".card.card--tight")).size() > 0;
         boolean hasEmptyState = driver.getPageSource().contains("Nothing yet");
         assertThat(hasNotifications || hasEmptyState).isTrue();

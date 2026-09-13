@@ -18,14 +18,14 @@ public class FakeCheckoutPage extends BasePage {
     public PaymentReturnPage simulateSuccess() {
         driver.findElement(By.cssSelector("input[value='success']")).findElement(By.xpath("..")).click();
         wait.until(ExpectedConditions.urlContains("/payments/return"));
-        pause(600);
+        pause(50);
         return new PaymentReturnPage(driver);
     }
 
     public PaymentReturnPage simulateFailure() {
-        driver.findElement(By.cssSelector("input[value='failure']")).findElement(By.xpath("..")).click();
+        driver.findElement(By.cssSelector("input[value='failed']")).findElement(By.xpath("..")).click();
         wait.until(ExpectedConditions.urlContains("/payments/return"));
-        pause(600);
+        pause(50);
         return new PaymentReturnPage(driver);
     }
 

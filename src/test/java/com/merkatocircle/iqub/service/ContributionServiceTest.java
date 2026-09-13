@@ -4,6 +4,8 @@ import com.merkatocircle.iqub.domain.Contribution;
 import com.merkatocircle.iqub.domain.ContributionStatus;
 import com.merkatocircle.iqub.domain.Iqub;
 import com.merkatocircle.iqub.domain.Member;
+import com.merkatocircle.iqub.domain.Membership;
+import com.merkatocircle.iqub.domain.MembershipStatus;
 import com.merkatocircle.iqub.domain.Round;
 import com.merkatocircle.iqub.domain.RoundStatus;
 import com.merkatocircle.iqub.exception.AlreadyPaidException;
@@ -66,6 +68,16 @@ class ContributionServiceTest {
         Round r = new Round(iqub, number, LocalDate.now(clock).plusDays(3));
         r.setStatus(status);
         return r;
+    }
+
+    private static void setId(Object entity, Long id) {
+        try {
+            java.lang.reflect.Field field = entity.getClass().getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(entity, id);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Nested
@@ -226,6 +238,98 @@ class ContributionServiceTest {
 
             assertThat(result).isSameAs(c);
             verify(paymentGateway, never()).verify(anyString());
+        }
+
+        @Test
+        @DisplayName("Idempotent: confirming a PAYMENT_FAILED contribution is a no-op")
+        void idempotentOnFailed() {
+            Iqub iqub = iqub();
+            Round openRound = round(iqub, 1, RoundStatus.OPEN);
+            Member m = member("Alice");
+            Contribution c = new Contribution(openRound, m, new BigDecimal("500"));
+            c.markAwaitingPayment("iqub-tx-4");
+            c.markFailed();
+
+            when(contributionRepository.findByTxRef("iqub-tx-4")).thenReturn(Optional.of(c));
+
+            Contribution result = service.confirmPayment("iqub-tx-4");
+
+            assertThat(result).isSameAs(c);
+            verify(paymentGateway, never()).verify(anyString());
+        }
+
+        @Test
+        @DisplayName("PENDING: returns contribution unchanged, no notification")
+        void pendingPaymentIsNoOp() {
+            Iqub iqub = iqub();
+            Round openRound = round(iqub, 1, RoundStatus.OPEN);
+            Member m = member("Alice");
+            Contribution c = new Contribution(openRound, m, new BigDecimal("500"));
+            c.markAwaitingPayment("iqub-tx-5");
+
+            when(contributionRepository.findByTxRef("iqub-tx-5")).thenReturn(Optional.of(c));
+            when(paymentGateway.verify("iqub-tx-5")).thenReturn(new PaymentVerification(PaymentStatus.PENDING, "Pending", "tx-5"));
+
+            Contribution result = service.confirmPayment("iqub-tx-5");
+
+            assertThat(result.getStatus()).isEqualTo(ContributionStatus.AWAITING_PAYMENT);
+            verify(notificationService, never()).notify(any(), anyString());
+        }
+
+        @Test
+        @DisplayName("SUCCESS late: marks PAID_LATE with penalty")
+        void confirmsLatePayment() {
+            // Use a clock set far past deadline
+            Clock lateClock = Clock.fixed(LocalDate.of(2026, 9, 15).atStartOfDay(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
+            Iqub iqub = new Iqub("Test Group", new BigDecimal("500.00"), 7, 10, LocalDate.now(clock));
+            Round lateRound = new Round(iqub, 1, LocalDate.of(2026, 9, 1));
+            lateRound.setStatus(RoundStatus.OPEN);
+            Member m = member("Alice");
+            Contribution c = new Contribution(lateRound, m, new BigDecimal("500"));
+            c.markAwaitingPayment("iqub-tx-6");
+
+            // Rebuild service with late clock so daysLate > 0
+            ContributionService lateService = new ContributionService(
+                    contributionRepository, membershipRepository, paymentGateway, notificationService, lateClock);
+
+            when(contributionRepository.findByTxRef("iqub-tx-6")).thenReturn(Optional.of(c));
+            when(paymentGateway.verify("iqub-tx-6")).thenReturn(new PaymentVerification(PaymentStatus.SUCCESS, "Success", "tx-6"));
+            when(contributionRepository.save(any(Contribution.class))).thenAnswer(i -> i.getArgument(0));
+
+            Contribution result = lateService.confirmPayment("iqub-tx-6");
+
+            assertThat(result.getStatus()).isEqualTo(ContributionStatus.PAID_LATE);
+            assertThat(result.getAmountPaid()).isEqualByComparingTo(new BigDecimal("500.00"));
+            verify(contributionRepository).save(c);
+        }
+
+        @Test
+        @DisplayName("SUCCESS very late (8+ days): marks membership DEFAULTED")
+        void latePaymentMarksMemberDefaulted() {
+            // Clock set 30 days past deadline → triggers default
+            Clock veryLateClock = Clock.fixed(LocalDate.of(2026, 10, 1).atStartOfDay(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
+            Iqub iqub = new Iqub("Test Group", new BigDecimal("500.00"), 7, 10, LocalDate.of(2026, 9, 1));
+            Round lateRound = new Round(iqub, 1, LocalDate.of(2026, 9, 1));
+            lateRound.setStatus(RoundStatus.OPEN);
+            Member m = member("Alice");
+            setId(m, 1L);
+            Contribution c = new Contribution(lateRound, m, new BigDecimal("500"));
+            c.markAwaitingPayment("iqub-tx-7");
+
+            ContributionService veryLateService = new ContributionService(
+                    contributionRepository, membershipRepository, paymentGateway, notificationService, veryLateClock);
+
+            when(contributionRepository.findByTxRef("iqub-tx-7")).thenReturn(Optional.of(c));
+            when(paymentGateway.verify("iqub-tx-7")).thenReturn(new PaymentVerification(PaymentStatus.SUCCESS, "Success", "tx-7"));
+            when(contributionRepository.save(any(Contribution.class))).thenAnswer(i -> i.getArgument(0));
+            when(membershipRepository.findByMemberAndIqub(m, iqub)).thenReturn(Optional.of(
+                    new Membership(m, iqub, LocalDate.now(clock), MembershipStatus.ACTIVE)));
+            when(membershipRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+            Contribution result = veryLateService.confirmPayment("iqub-tx-7");
+
+            assertThat(result.getStatus()).isEqualTo(ContributionStatus.PAID_LATE);
+            verify(notificationService).notify(eq(m), anyString());
         }
     }
 }
