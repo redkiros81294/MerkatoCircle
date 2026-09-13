@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
@@ -166,22 +167,57 @@ class RoundServiceTest {
     }
 
     @Test
-    @DisplayName("State machine: OPEN becomes OVERDUE when deadline passes and not everyone paid")
-    void openBecomesOverdueWhenDeadlinePasses() {
+    @DisplayName("getCurrentRound throws when no rounds exist")
+    void getCurrentRound_noRounds_throws() {
+        Iqub iqub = iqub(PayoutMode.LOTTERY);
+        when(roundRepository.findTopByIqubOrderByRoundNumberDesc(iqub)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getCurrentRound(iqub))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("no rounds yet");
+    }
+
+    @Test
+    @DisplayName("OPEN round stays OPEN when deadline passes and everyone paid")
+    void openRoundStaysOpenWhenDeadlinePassesAndEveryonePaid() {
         Iqub iqub = iqub(PayoutMode.LOTTERY);
         Round r = round(iqub, 1, RoundStatus.OPEN, LocalDate.now(clock).minusDays(1));
 
         Member alice = member("Alice");
-        Contribution paid = contribution(r, alice, ContributionStatus.PAID);
-        Contribution pending = new Contribution(r, member("Bob"), new BigDecimal("500"));
+        Member bob = member("Bob");
+        Contribution alicePaid = contribution(r, alice, ContributionStatus.PAID);
+        Contribution bobPaid = contribution(r, bob, ContributionStatus.PAID);
 
         when(roundRepository.findTopByIqubOrderByRoundNumberDesc(iqub)).thenReturn(Optional.of(r));
         when(roundRepository.findById(1L)).thenReturn(Optional.of(r));
-        when(contributionRepository.findByRound(r)).thenReturn(List.of(paid, pending));
+        when(contributionRepository.findByRound(r)).thenReturn(List.of(alicePaid, bobPaid));
 
         Round current = service.getCurrentRound(iqub);
 
-        assertThat(current.getStatus()).isEqualTo(RoundStatus.OVERDUE);
-        verify(roundRepository).save(r);
+        assertThat(current.getStatus()).isEqualTo(RoundStatus.OPEN);
+        verify(roundRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("runDraw: winner without membership does not call save on membership")
+    void runDraw_winnerWithoutMembership() {
+        Iqub iqub = iqub(PayoutMode.LOTTERY);
+        Round r = round(iqub, 1, RoundStatus.OPEN);
+        Member winner = member("Alice");
+
+        when(roundRepository.findTopByIqubOrderByRoundNumberDesc(iqub)).thenReturn(Optional.of(r));
+        when(roundRepository.findById(1L)).thenReturn(Optional.of(r));
+        when(eligibilityChecker.getEligibleMembers(r)).thenReturn(List.of(winner));
+        when(winnerSelector.select(List.of(winner))).thenReturn(winner);
+        when(contributionRepository.findByRound(r)).thenReturn(Collections.emptyList());
+        when(membershipRepository.findByMemberAndIqub(winner, iqub)).thenReturn(Optional.empty());
+        when(membershipRepository.findByIqubAndStatus(any(), any())).thenReturn(Collections.emptyList());
+        when(roundRepository.save(any(Round.class))).thenAnswer(i -> i.getArgument(0));
+
+        Round closed = service.runDraw(r);
+
+        assertThat(closed.getStatus()).isEqualTo(RoundStatus.CLOSED);
+        verify(membershipRepository).findByMemberAndIqub(winner, iqub);
+        verify(membershipRepository, never()).save(any());
     }
 }
