@@ -90,6 +90,11 @@ class EligibilityCheckerTest {
         // Case: C3=DEFAULTED → not eligible
         when(membershipRepository.findByMemberAndIqub(alice, iqub)).thenReturn(Optional.of(membership(alice, iqub, MembershipStatus.DEFAULTED, false)));
         assertThat(checker.getEligibleMembers(r)).isEmpty();
+
+        // Case: no membership found for paid contributor → not eligible
+        when(contributionRepository.findByRound(r)).thenReturn(List.of(contribution(r, alice, ContributionStatus.PAID)));
+        when(membershipRepository.findByMemberAndIqub(alice, iqub)).thenReturn(Optional.empty());
+        assertThat(checker.getEligibleMembers(r)).isEmpty();
     }
 
     @Test
