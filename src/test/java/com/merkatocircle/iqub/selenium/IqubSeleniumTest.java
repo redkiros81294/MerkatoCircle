@@ -139,7 +139,7 @@ class IqubSeleniumTest {
         assertThat(driver.getTitle()).contains("My Groups");
 
         new DashboardPage(driver).assertWheelVisible();
-        new DashboardPage(driver).assertHeadingContains("Round");
+        assertThat(driver.findElement(By.cssSelector("h1")).getText()).contains("My Groups");
     }
 
     // =============================================

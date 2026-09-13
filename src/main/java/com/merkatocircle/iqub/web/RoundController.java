@@ -3,6 +3,7 @@ package com.merkatocircle.iqub.web;
 import com.merkatocircle.iqub.domain.Bid;
 import com.merkatocircle.iqub.domain.Iqub;
 import com.merkatocircle.iqub.domain.Member;
+import com.merkatocircle.iqub.domain.Membership;
 import com.merkatocircle.iqub.domain.PayoutMode;
 import com.merkatocircle.iqub.domain.PlatformRole;
 import com.merkatocircle.iqub.domain.Round;

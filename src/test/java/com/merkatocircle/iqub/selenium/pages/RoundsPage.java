@@ -24,15 +24,31 @@ public class RoundsPage extends BasePage {
     }
 
     public boolean hasRounds() {
-        return !driver.findElements(By.cssSelector("table tbody tr")).isEmpty();
+        try {
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("table")));
+        } catch (Exception e) {
+            System.out.println("=== NO TABLE FOUND ===");
+            System.out.println(driver.getPageSource());
+            return false;
+        }
+        java.util.List<WebElement> rows = driver.findElements(By.cssSelector("table tbody tr"));
+        System.out.println("=== ROWS FOUND: " + rows.size() + " ===");
+        if (rows.isEmpty()) {
+            System.out.println("=== PAGE SOURCE ===");
+            System.out.println(driver.getPageSource());
+        }
+        return !rows.isEmpty();
     }
 
     public RoundDetailPage clickFirstRound() {
         java.util.List<WebElement> rows = driver.findElements(By.cssSelector("table tbody tr"));
-        if (!rows.isEmpty()) {
-            rows.get(0).findElement(By.cssSelector("a")).click();
-            wait.until(ExpectedConditions.urlContains("/rounds/"));
-            pause(600);
+        for (WebElement row : rows) {
+            if (!row.findElements(By.cssSelector("a")).isEmpty()) {
+                row.findElement(By.cssSelector("a")).click();
+                wait.until(ExpectedConditions.urlContains("/rounds/"));
+                pause(600);
+                break;
+            }
         }
         return new RoundDetailPage(driver);
     }

@@ -23,7 +23,7 @@ public class FakeCheckoutPage extends BasePage {
     }
 
     public PaymentReturnPage simulateFailure() {
-        driver.findElement(By.cssSelector("input[value='failure']")).findElement(By.xpath("..")).click();
+        driver.findElement(By.cssSelector("input[value='failed']")).findElement(By.xpath("..")).click();
         wait.until(ExpectedConditions.urlContains("/payments/return"));
         pause(600);
         return new PaymentReturnPage(driver);
