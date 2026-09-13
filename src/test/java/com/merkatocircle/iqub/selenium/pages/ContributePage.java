@@ -17,9 +17,7 @@ public class ContributePage extends BasePage {
 
     public ContributePage open(String baseUrl) {
         driver.get(baseUrl + "/contribute");
-        pause(50);
         wait.until(ExpectedConditions.urlContains("/contribute"));
-        pause(50);
         return this;
     }
 
@@ -31,10 +29,35 @@ public class ContributePage extends BasePage {
         return driver.getPageSource().contains("You're settled");
     }
 
+    /**
+     * Clicks Pay and waits for the browser to land on the fake checkout page.
+     *
+     * <p>The button is waited on explicitly (present + clickable) before the click, and
+     * the post-click wait accepts <em>either</em> the checkout URL or a login redirect.
+     * If neither happens within the timeout the failure message includes the actual URL
+     * and page source so the next investigation does not start from a bare timeout.
+     */
     public FakeCheckoutPage clickPay() {
-        driver.findElement(By.cssSelector("form[action='/contribute/pay'] button")).click();
-        wait.until(ExpectedConditions.urlContains("/test/fake-checkout"));
-        pause(50);
+        WebElement button = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.cssSelector("form[action='/contribute/pay'] button")));
+        button.click();
+
+        boolean navigated = wait.until(d -> {
+            String url = driver.getCurrentUrl();
+            return url.contains("/test/fake-checkout") || url.contains("/login");
+        });
+
+        String url = driver.getCurrentUrl();
+        if (url.contains("/login")) {
+            throw new AssertionError("Pay button redirected to /login — session or CSRF "
+                    + "token likely expired mid-form. URL: " + url);
+        }
+        if (!navigated) {
+            throw new AssertionError("Expected navigation to /test/fake-checkout but the "
+                    + "browser stayed on the contribute page. URL: " + url
+                    + "\nPage source:\n" + driver.getPageSource());
+        }
         return new FakeCheckoutPage(driver);
     }
 }

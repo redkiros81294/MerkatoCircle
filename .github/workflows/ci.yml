@@ -24,7 +24,12 @@ jobs:
       - name: Install Chrome for Selenium
         run: |
           sudo apt-get update
-          sudo apt-get install -y chromium-browser
+          # Install chromium AND its version-matched chromedriver from the same apt
+          # repo. SeleniumManager's own auto-download can silently fetch a ChromeDriver
+          # whose CDP version does not match the installed Chromium, which made the
+          # fake-checkout Selenium tests time out waiting for navigation the driver
+          # never reported. Bundling both from one source keeps the pair in sync.
+          sudo apt-get install -y chromium-browser chromium-chromedriver
 
       - name: Create data directory
         run: mkdir -p data
@@ -32,8 +37,9 @@ jobs:
       - name: Run unit and integration tests
         run: mvn clean test
         env:
-          # Ensure SeleniumManager can find Chrome binary
+          # Point Selenium at the apt-installed, version-matched binaries.
           CHROME_BIN: /usr/bin/chromium-browser
+          CHROMEDRIVER_BIN: /usr/bin/chromium-chromedriver
 
       - name: Upload JaCoCo coverage report
         uses: actions/upload-artifact@v4

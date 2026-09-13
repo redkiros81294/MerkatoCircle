@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="Merkato Circle" width="120">
+  <img src="logo.png" alt="Merkato Circle" width="240">
 </p>
 
 <h1 align="center">Merkato Circle</h1>
@@ -7,7 +7,7 @@
 <p align="center">
   <strong>Digital Iqub Manager</strong> — rotating savings circles built for the modern web.
   <br>
-  A Spring Boot application with Thymeleaf frontend, enforcing spec §3 business rules,
+  A Spring Boot application with Thymeleaf frontend, enforcing spec 3 business rules,
   Chapa payment integration, and comprehensive automated testing (unit + integration + Selenium).
 </p>
 
@@ -17,7 +17,7 @@
   <a href="#tech-stack"><img src="https://img.shields.io/badge/Thymeleaf-3.1-green" alt="Thymeleaf"></a>
   <a href="#testing"><img src="https://img.shields.io/badge/Selenium-4.24-blue" alt="Selenium"></a>
   <a href="#testing"><img src="https://img.shields.io/badge/JUnit_5-5.10-red" alt="JUnit"></a>
-  <a href="#testing"><img src="https://img.shields.io/badge/57_tests-passing-brightgreen" alt="Tests"></a>
+  <a href="#testing"><img src="https://img.shields.io/badge/135_tests-passing-brightgreen" alt="Tests"></a>
 </p>
 
 ---
@@ -83,16 +83,19 @@ Password for all accounts: **`password123`**
 ## Running Tests
 
 ```bash
-# All tests — unit + integration + Selenium (57 tests)
+# All tests — unit + integration + controller + Selenium (135 tests)
 mvn test
 
-# Unit tests only (32 tests)
-mvn test -Dtest=ContributionServiceTest,EligibilityCheckerTest,MemberServiceTest,MembershipServiceTest,RoundServiceTest,BidServiceTest
+# Unit tests only (54 tests)
+mvn test -Dtest=ContributionServiceTest,EligibilityCheckerTest,MemberServiceTest,MembershipServiceTest,RoundServiceTest,BidServiceTest,NotificationServiceTest,RandomWinnerSelectorTest
 
 # Integration tests only (5 tests)
 mvn test -Dtest=PersistenceIntegrationTest
 
-# Selenium E2E tests only (21 tests)
+# Controller tests only (47 tests)
+mvn test -Dtest=*ControllerTest
+
+# Selenium E2E tests only (20 tests)
 mvn test -Dtest=IqubSeleniumTest
 ```
 
@@ -101,10 +104,11 @@ mvn test -Dtest=IqubSeleniumTest
 - **Equivalence Partitioning / BVA:** penalty bands, bid discount boundaries
 - **Decision Table:** eligibility rules (paid + not already won + active membership)
 - **State Transition:** round lifecycle (OPEN → OVERDUE → CLOSED), payment state machine
-- **Selenium E2E:** all 14 pages plus critical user journeys, using Page Object pattern
+- **Selenium E2E:** all 17 pages plus critical user journeys, using Page Object pattern
 - **Integration:** full persistence layer tests with real H2 database
+- **Controller:** MockMvc coverage of all authenticated and public endpoints
 
-See `src/test/` for full test sources.
+See `src/test/` for full test sources and `report.md` for the complete testing effort.
 
 ---
 
@@ -218,27 +222,40 @@ src/main/java/com/merkatocircle/iqub/
 │   ├── RegistrationController.java
 │   ├── DashboardController.java
 │   ├── ContributionController.java
-│   ├── RoundController.java
 │   ├── BidController.java
+│   ├── RoundController.java
 │   ├── GroupController.java
 │   ├── AccountController.java
 │   ├── SettingsController.java
-│   └── NotificationController.java
+│   ├── NotificationController.java
+│   ├── PaymentReturnController.java
+│   ├── FakeCheckoutController.java
+│   ├── ChapaCallbackController.java
+│   ├── GlobalModelAttributes.java
+│   └── WheelNode.java
 └── IqubApplication.java              # Main entry point
 
 src/test/java/com/merkatocircle/iqub/
-├── service/                           # Unit tests (32 tests)
+├── config/                           # DataSeederTest (2 tests)
+│   └── DataSeederTest.java
+├── domain/                           # MemberNameTest (2 tests)
+│   └── MemberNameTest.java
+├── exception/                        # GlobalExceptionHandlerTest (3 tests)
+│   └── GlobalExceptionHandlerTest.java
+├── integration/                      # Integration tests (5 tests)
+│   └── PersistenceIntegrationTest.java
+├── service/                          # Unit tests (34 tests)
 │   ├── ContributionServiceTest.java
-│   ├── RoundServiceTest.java
 │   ├── EligibilityCheckerTest.java
 │   ├── MemberServiceTest.java
 │   ├── MembershipServiceTest.java
-│   └── BidServiceTest.java
-├── integration/                       # Integration tests (5 tests)
-│   └── PersistenceIntegrationTest.java
-└── selenium/                          # Selenium E2E tests (21 tests)
+│   ├── RoundServiceTest.java
+│   ├── BidServiceTest.java
+│   ├── NotificationServiceTest.java
+│   └── RandomWinnerSelectorTest.java
+└── selenium/                         # Selenium E2E tests (20 tests)
     ├── IqubSeleniumTest.java
-    └── pages/                         # Page Object classes
+    └── pages/                         # Page Object classes (13)
         ├── BasePage.java
         ├── LoginPage.java
         ├── DashboardPage.java
@@ -256,7 +273,7 @@ src/test/java/com/merkatocircle/iqub/
 └── ci.yml                             # GitHub Actions pipeline
 
 src/main/resources/
-├── templates/                        # Thymeleaf views (14 pages)
+├── templates/                        # Thymeleaf views (17 pages)
 ├── static/css/styles.css             # Design tokens + component styles
 └── application.properties            # H2, JPA, Thymeleaf config
 ```
@@ -288,9 +305,10 @@ src/main/resources/
 - Bell icon with unread count in topbar
 
 ### Testing
-- 32 unit tests with Mockito + AssertJ
+- 54 unit tests with Mockito + AssertJ
 - 5 integration tests with Spring Boot + real H2 database
-- 21 Selenium E2E tests using Page Object pattern, covering all 14 pages
+- 47 controller tests with MockMvc covering all authenticated and public endpoints
+- 20 Selenium E2E tests using Page Object pattern, covering all 17 pages
 - Deterministic via injected `Clock`, `WinnerSelector`, and `PaymentGateway`
 - CI/CD: GitHub Actions + Jenkins pipelines
 
@@ -326,8 +344,4 @@ spring.security.user.name=            # no default user — use seeded accounts
 |---|---|---|
 | `CHAPA_SECRET_KEY` | No | Chapa API key (only when using `chapa` profile) |
 
----
 
-<p align="center">
-  Built for SECT-4221 · Enterprise Application Development
-</p>
