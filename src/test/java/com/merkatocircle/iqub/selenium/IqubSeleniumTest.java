@@ -48,6 +48,10 @@ class IqubSeleniumTest {
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
+        // Use locally installed Chromium for headless CI/testing
+        // NOTE: In CI environments without local Chromium, remove this line and let
+        // SeleniumManager auto-download Chromium, or set CHROME_BIN env variable.
+        options.setBinary("/usr/bin/chromium");
         driver = new ChromeDriver(options);
     }
 
