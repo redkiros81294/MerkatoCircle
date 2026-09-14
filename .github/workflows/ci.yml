@@ -47,7 +47,7 @@ jobs:
           # Point Selenium at the apt-installed, version-matched binaries.
           # (The "chromium-driver" package installs the driver as "chromiumdriver".)
           CHROME_BIN: /usr/bin/chromium
-          CHROMEDRIVER_BIN: /usr/bin/chromiumdriver
+          CHROMEDRIVER_BIN: /usr/bin/chromedriver
 
       - name: Upload JaCoCo coverage report
         uses: actions/upload-artifact@v4

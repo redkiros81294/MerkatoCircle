@@ -41,7 +41,7 @@ pipeline {
 
         stage('Selenium Tests') {
             steps {
-                withEnv(["CHROME_BIN=/usr/bin/chromium", "CHROMEDRIVER_BIN=/usr/bin/chromiumdriver"]) {
+                withEnv(["CHROME_BIN=/usr/bin/chromium", "CHROMEDRIVER_BIN=/usr/bin/chromedriver"]) {
                     sh 'mvn test -Dtest=IqubSeleniumTest'
                 }
             }
