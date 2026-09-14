@@ -21,7 +21,7 @@ pipeline {
             steps {
                 sh '''
                     apt-get update && \
-                    apt-get install -y chromium && \
+                    apt-get install -y chromium chromium-driver && \
                     rm -rf /var/lib/apt/lists/*
                 '''
             }
@@ -41,7 +41,9 @@ pipeline {
 
         stage('Selenium Tests') {
             steps {
-                sh 'mvn test -Dtest=IqubSeleniumTest'
+                withEnv(["CHROME_BIN=/usr/bin/chromium", "CHROMEDRIVER_BIN=/usr/bin/chromiumdriver"]) {
+                    sh 'mvn test -Dtest=IqubSeleniumTest'
+                }
             }
         }
 

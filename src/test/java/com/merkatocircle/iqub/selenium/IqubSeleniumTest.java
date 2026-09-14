@@ -51,9 +51,19 @@ class IqubSeleniumTest {
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
-        // Allow SeleniumManager to auto-download and manage ChromeDriver + Chromium
-        // for CI environments without a pre-installed browser binary.
-        // Set CHROME_BIN env variable if you need to use a specific Chromium binary.
+
+        // If CHROME_BIN / CHROMEDRIVER_BIN are set (CI pins these to the apt-installed,
+        // version-matched binaries), use them explicitly. Otherwise fall back to
+        // SeleniumManager auto-download for local/dev environments.
+        String chromeBin = System.getenv("CHROME_BIN");
+        String chromedriverBin = System.getenv("CHROMEDRIVER_BIN");
+        if (chromeBin != null && !chromeBin.isBlank()) {
+            options.setBinary(chromeBin);
+        }
+        if (chromedriverBin != null && !chromedriverBin.isBlank()) {
+            System.setProperty("webdriver.chrome.driver", chromedriverBin);
+        }
+
         driver = new ChromeDriver(options);
     }
 
