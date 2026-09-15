@@ -43,10 +43,17 @@ public class ContributePage extends BasePage {
                         By.cssSelector("form[action='/contribute/pay'] button")));
         button.click();
 
-        boolean navigated = wait.until(d -> {
-            String url = driver.getCurrentUrl();
-            return url.contains("/test/fake-checkout") || url.contains("/login");
-        });
+        boolean navigated;
+        try {
+            navigated = wait.until(d -> {
+                String url = driver.getCurrentUrl();
+                return url.contains("/test/fake-checkout") || url.contains("/login");
+            });
+        } catch (org.openqa.selenium.TimeoutException e) {
+            throw new AssertionError("Timed out waiting for navigation after clicking Pay. "
+                    + "URL: " + driver.getCurrentUrl()
+                    + "\nPage source:\n" + driver.getPageSource(), e);
+        }
 
         String url = driver.getCurrentUrl();
         if (url.contains("/login")) {
