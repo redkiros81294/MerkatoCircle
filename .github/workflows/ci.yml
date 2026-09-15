@@ -21,22 +21,12 @@ jobs:
           java-version: 21
           cache: maven
 
-      - name: Install Chrome for Selenium
-        run: |
-          sudo apt-get update
-          # Install chromium AND its version-matched driver from the same apt repo.
-          # NOTE: on Ubuntu 22.04+/24.04 (ubuntu-latest), "chromium-browser" and
-          # "chromium-chromedriver" are empty transitional packages that just wrap
-          # the Snap Store build of Chromium. There is no working snapd on GitHub
-          # Actions runners, so those packages install but produce a stub binary
-          # that refuses to run ("requires the chromium snap to be installed").
-          # The real, non-snap packages on this Ubuntu release are "chromium" and
-          # "chromium-driver". SeleniumManager's own auto-download can otherwise
-          # silently fetch a ChromeDriver whose CDP version does not match the
-          # installed Chromium, which made the fake-checkout Selenium tests time
-          # out waiting for navigation the driver never reported. Bundling both
-          # from one source keeps the pair in sync.
-          sudo apt-get install -y chromium chromium-driver
+      - name: Install Chrome and matching ChromeDriver
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          install-chromedriver: true
+          install-dependencies: true
 
       - name: Create data directory
         run: mkdir -p data
@@ -44,10 +34,13 @@ jobs:
       - name: Run unit and integration tests
         run: mvn clean test
         env:
-          # Point Selenium at the apt-installed, version-matched binaries.
-          # (The "chromium-driver" package installs the driver as "chromiumdriver".)
-          CHROME_BIN: /usr/bin/chromium
-          CHROMEDRIVER_BIN: /usr/bin/chromedriver
+          # setup-chrome downloads Chrome and ChromeDriver from Google's
+          # "Chrome for Testing" infra as a matched pair, so there's no
+          # version-mismatch risk and no apt package-naming guesswork
+          # (Ubuntu no longer ships real, non-snap chromium/chromedriver
+          # apt packages, which is what broke this step previously).
+          CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
+          CHROMEDRIVER_BIN: ${{ steps.setup-chrome.outputs.chromedriver-path }}
 
       - name: Upload JaCoCo coverage report
         uses: actions/upload-artifact@v4
