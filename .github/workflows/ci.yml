@@ -9,6 +9,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -25,14 +26,17 @@ jobs:
         id: setup-chrome
         uses: browser-actions/setup-chrome@v2
         with:
+          chrome-version: stable
           install-chromedriver: true
           install-dependencies: true
 
-      - name: Create data directory
-        run: mkdir -p data
+      - name: Report browser versions
+        run: |
+          "${{ steps.setup-chrome.outputs.chrome-path }}" --version
+          "${{ steps.setup-chrome.outputs.chromedriver-path }}" --version
 
       - name: Run unit and integration tests
-        run: mvn clean test
+        run: mvn -B -ntp clean test
         env:
           # setup-chrome downloads Chrome and ChromeDriver from Google's
           # "Chrome for Testing" infra as a matched pair, so there's no
@@ -42,12 +46,13 @@ jobs:
           CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
           CHROMEDRIVER_BIN: ${{ steps.setup-chrome.outputs.chromedriver-path }}
 
-      - name: Upload JaCoCo coverage report
+      - name: Upload Selenium diagnostics (screenshots + page dumps)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-report
-          path: target/site/jacoco/
+          name: selenium-diagnostics
+          path: target/selenium-diagnostics/
+          if-no-files-found: ignore
 
       - name: Upload test results
         if: always()
@@ -55,3 +60,10 @@ jobs:
         with:
           name: test-results
           path: target/surefire-reports/
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
